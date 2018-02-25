@@ -1,0 +1,31 @@
+---
+
+- name: Add Centos MongoDB Repository
+  yum_repository:
+    name: "{{ mongodb_repository_config.centos.name }}"
+    description: "{{ mongodb_repository_config.centos.description }}"
+    baseurl: "{{ mongodb_repository_config.centos.url }}"
+    gpgkey: "{{ mongodb_repository_config.centos.gpgkey }}"
+    gpgcheck: "{{ mongodb_repository_config.centos.gpgcheck }}"
+    enabled: "{{ mongodb_repository_config.centos.enabled }}"
+    state: present
+
+- name: Install MongoDB
+  yum: name="{{ mongodb_repository_config.centos.package }}"  state=installed  update_cache=yes
+
+- name: install additionnal packages
+  yum: name="{{ item }}" state=installed
+  with_items:
+    - "{{ mongodb_additional_packages }}"
+
+- name: Start MongoDB service
+  systemd:
+    name: mongod
+    state: started
+    enabled: yes
+
+- name: Wait for MongoDB default Port is open
+  wait_for: host=127.0.0.1 port=27017 state=started timeout=60
+
+- include_tasks: configure.yml
+  when: standalone == "no"

@@ -1,0 +1,21 @@
+---
+
+- name: Add APT key
+  apt_key: keyserver=keyserver.ubuntu.com id="{{ mongodb_repository_config.ubuntu.id }}"
+
+- name: Add APT repository
+  apt_repository: repo="{{ mongodb_repository_config.ubuntu.repository }}" update_cache=yes
+
+- name: Install MongoDB package
+  apt: name="{{ mongodb_repository_config.ubuntu.package }}" state=present force=yes
+
+- name: Install additional packages
+  apt: name={{ item }}
+  with_items: "{{ mongodb_additional_packages }}"
+
+- name: install systemd service
+  copy:
+    src: mongod.service
+    dest: /etc/systemd/system/mongod.service
+
+- include_tasks: configure.yml

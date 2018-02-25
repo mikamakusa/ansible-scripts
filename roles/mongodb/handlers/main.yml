@@ -1,0 +1,12 @@
+---
+
+- name: Start MongoDB
+  systemd:
+    name: mongod
+    state: started
+    daemon_reload: yes
+
+- name: Stop MongoDB
+  systemd:
+    name: mongod
+    state: stooped

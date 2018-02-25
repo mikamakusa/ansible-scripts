@@ -1,0 +1,62 @@
+---
+
+- name: Ensure mongodb group is present
+  group: name="{{ mongodb_group }}"
+
+- name: Create mongodb user
+  user: name="{{ mongodb_user }}" group="{{ mongodb_group }}"
+  notify: Start MongoDB
+
+# - name: Configure mongodb
+#   template: 
+#     src: "{{ mongodb_config.config_file }}.j2" 
+#     dest: "{{ mongodb_config.config_path }}/{{ mongodb_config.config_file }}" 
+#     owner: root 
+#     group: root 
+#     mode: 0644
+#   when: standalone == "no"
+#   notify: Start MongoDB
+
+- name: Wait for MongoDB default Port is open
+  wait_for: host=127.0.0.1 port=27017 state=started timeout=60
+
+- name: Configure log rotation
+  template: src=logrotate.conf.j2 dest=/etc/logrotate.d/mongodb.conf
+  when: mongodb_logrotate
+
+- name: Configure database directory
+  file: state=directory path={{ mongodb_conf_dbpath }} owner={{mongodb_user}} group={{mongodb_user}} mode=0755
+
+- name: Configure log directory
+  file: state=directory path={{ mongodb_conf_logpath | dirname }} owner={{mongodb_user}} group={{mongodb_user}} mode=0755
+  notify: Reload MongoDB
+
+- name: Wait for MongoDB default Port is open
+  wait_for: host=127.0.0.1 port=27017 state=started timeout=60
+
+- name: Disable transparent hugepages
+  template: src=transparent_hugepage.conf dest=/etc/init/mongodb_settings.conf owner=root group=root mode=0644
+  notify: Reload MongoDB
+  when: mongodb_transparent_hugepage_disable
+
+- name: Wait for MongoDB default Port is open
+  wait_for: host=127.0.0.1 port=27017 state=started timeout=60
+
+- name: "Ensure .mongorc.js script is present"
+  copy: 
+    content: |
+      rs.initiate( 
+        { 
+          _id: "rs0", 
+          members: [
+            { _id: 0, host: "172.28.128.3:27017" }, 
+            { _id: 1, host: "172.28.128.4:27017" } 
+          ] 
+        }
+      )
+      printjson(rs.status());  
+    dest: /opt/.mongorc.js 
+
+- name: Run mongoshell commands
+  command: mongo /opt/.mongorc.js
+  run_once: true
