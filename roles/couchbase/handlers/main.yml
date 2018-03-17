@@ -1,0 +1,31 @@
+---
+
+- name: start disable-thp
+  service:
+    name: disable-thp
+    state: started
+    enabled: yes
+  ignore_errors: yes
+  become: yes
+
+- name: start couchbase
+  become: yes
+  systemd: 
+    name: "{{ couchbase_server_package.service }}" 
+    enabled: yes 
+    state: started
+
+- name: restart couchbase
+  become: yes
+  service: 
+    name: "{{ couchbase_server_package.service }}" 
+    enabled: yes 
+    state: restarted
+    daemon-reload: yes
+
+- name: stop couchbase
+  become: yes
+  service: 
+    name: "{{ couchbase_server_package.service }}" 
+    enabled: yes 
+    state: stopped

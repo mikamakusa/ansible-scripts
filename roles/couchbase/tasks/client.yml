@@ -1,0 +1,32 @@
+---
+
+- name: "Checking package {{ couchbase_client_package.name }}"
+  stat:
+    path: "/tmp/{{couchbase_client_package.name }}"
+  register: couchbase_client_pkg
+
+- name: "Download {{ couchbase_client_package.name }}"
+  get_url:
+    url: "{{ couchbase_client_package.url }}/{{ couchbase_client_package.name }}"
+    dest: /tmp
+    validate_certs: false
+    force: yes
+    mode: 0755
+  when: couchbase_client_pkg.stat.exists == False
+
+- name: "Install couchbase client release"
+  become: yes
+  yum: 
+    name: "/tmp/{{ couchbase_client_package.name }}"
+    state: present
+
+- name: Install couchbase client sdk
+  become: yes
+  yum: 
+    name: "{{ item }}" 
+    state: present
+  with_items:
+    - libcouchbase-devel
+    - libcouchbase2-bin
+
+- include_tasks: server.yml

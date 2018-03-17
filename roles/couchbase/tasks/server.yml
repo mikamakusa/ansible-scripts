@@ -1,0 +1,52 @@
+---
+
+- name: "Checking package {{couchbase_server_package.name }}"
+  stat:
+    path: "/tmp/{{couchbase_server_package.name }}"
+  register: couchbase_server_pkg
+
+- name: "Download {{couchbase_server_package_name }}"
+  get_url:
+    url: "{{ couchbase_server_package.url }}"
+    dest: /tmp
+    validate_certs: false
+    force: yes
+    mode: 0755
+  when: couchbase_server_pkg.stat.exists == False
+
+- name: Disable swap
+  shell: swapoff -a
+  ignore_errors: yes
+  become: yes
+
+- name: Check Transparent Huge Page status
+  command: "cat /sys/kernel/mm/transparent_hugepage/enabled"
+  ignore_errors: yes
+  register: thp_status
+  become: yes
+
+- name: Create script to disable THP
+  template: 
+    dest: /etc/init.d/disable-thp
+    group: root
+    mode: 755 
+    owner: root
+    src: disable-thp.j2 
+  when: thp_status.stdout | match ('^.always.*$')
+  ignore_errors: yes
+  become: yes
+  notify: start disable-thp
+
+- name: "Install {{couchbase_server_package.name }} release"
+  become: yes
+  yum: 
+    name: "/tmp/{{ couchbase_server_package.name }}"
+    state: present
+  notify: star couchbase
+
+- name: Clean up /tmp 
+  local_action:
+    module: file
+    name: "/tmp/{{ couchbase_server_package.name }}"
+    state: absent
+  run_once: true

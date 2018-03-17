@@ -1,0 +1,11 @@
+couchbase_server_version: 4.5.0
+couchbase_client_version: 1.0-2
+
+couchbase_server_package:
+  name: "couchbase-server-enterprise-{{ couchbase_server_version }}-centos7.x86_64.rpm"
+  url: "http://packages.couchbase.com/releases/{{ couchbase_server_version }}/"
+  service: couchbase-server
+
+couchbase_client_package:
+  name: "couchbase-release-{{ couchbase_client_version }}-x86_64.rpm"
+  url: http://packages.couchbase.com/releases/couchbase-release/
