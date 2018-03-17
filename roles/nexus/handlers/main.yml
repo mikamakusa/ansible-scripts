@@ -1,0 +1,26 @@
+---
+
+- name: Start Nexus
+  systemd:
+    name: nexus
+    state: started
+
+- name: Stop Nexus
+  systemd:
+    name: nexus
+    state: stopped
+
+- name: Start Nginx
+  systemd:
+    name: nginx
+    state: started
+
+- name: Stop Nginx
+  systemd:
+    name: nginx
+    state: stopped
+
+- name: Restart Nginx
+  systemd:
+    name: nginx
+    state: restarted

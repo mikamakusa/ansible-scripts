@@ -1,0 +1,16 @@
+---
+
+- include_vars: config.yaml
+  when: ansible_hostname == "nexus"
+
+- include_tasks: install.yml
+  tags: nexus_installed
+  when: ansible_hostname == "nexus"
+
+- include_tasks: config.yml
+  tags: nexus_configured
+  when: ansible_hostname == "nexus"
+
+- include_tasks: securise.yml
+  tags: nexus_secured
+  when: ansible_hostname == "nexus"

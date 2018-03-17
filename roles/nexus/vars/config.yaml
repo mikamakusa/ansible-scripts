@@ -1,0 +1,50 @@
+nexus_installed: yes
+nexus_configured: yes
+nexus_secured: yes
+
+java_pkg: openjdk-8-jre-headless
+collectd_pkg: collectd
+groovy_pkg: groovy
+
+base:
+  service_directory: /lib/systemd/system
+
+nexus_install:
+  directory: /home/nexus/download
+  owner: nexus
+  path: /srv/nexus-data
+  environmentvariable: 'NEXUS_HOME="/opt/nexus"'
+  name: nexus
+  maj_version: 3
+  type: tar.gz
+  version: 3.4.0-02
+  url: https://sonatype-download.global.ssl.fastly.net
+  hash: https://sonatype-download.global.ssl.fastly.net
+  datapath: /opt/sonatype-work
+  path: /opt
+  application_port: 8081
+nexus_scripts:
+  updatescript: addUpdateScript.groovy
+  updateuser: updateuser.groovy
+  updateanonymous: updateanonymous.groovy
+nexus_config:
+  user: admin
+  password: admin
+
+nginx_install:
+  pkg: nginx
+nginx_config:
+  http_port: 80
+  https_port: 443
+  nexus_port: 8081
+  domain: nexus.local
+  access_log: nexus.log
+  cert_file: cert
+  cert_path: /etc/nginx
+  conf_file: nexus.conf
+  conf_path: /etc/nginx/sites-available
+  link_path: /etc/nginx/sites-enabled
+  dhparam_file: dhparams.pem
+  dhparam_path: /etc/nginx/
+ssl_install:
+  pkg: openssl

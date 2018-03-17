@@ -1,0 +1,39 @@
+---
+- name: Install Nexus Prerequisites
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "{{ java_pkg }}"
+    - "{{ collectd_pkg }}"
+    - "{{ groovy_pkg }}"
+  when: ansible_hostname == "nexus"
+
+- name: Recover Nexus Archive
+  unarchive:
+    remote_src: yes
+    src: "{{ nexus_install.url }}/nexus/{{ nexus_install.maj_version }}/nexus-{{ nexus_install.version }}-unix.{{ nexus_install.type }}"
+    dest: "{{ nexus_install.datapath }}"
+    owner: "{{ nexus_install.owner }}"
+    group: "{{ nexus_install.owner }}"
+    mode: 0644
+  when: ansible_hostname == "nexus"
+
+- name: Create Symlink for Nexus Directory
+  file:
+    src: "{{ nexus_install.datapath }}"
+    dest: "{{ nexus_install.path }}/nexus"
+    owner: "{{ nexus_install.owner }}"
+    group: "{{ nexus_install.owner }}"
+    mode: 0644
+    state: link
+  when: ansible_hostname == "nexus"
+
+- name: Nexus Service Creation
+  template:
+    src: nexus.service.j2
+    dest: "{{ base.service_directory }}/nexus.service"
+    owner: "{{ nexus_install.owner }}"
+    group: "{{ nexus_install.owner }}"
+    mode: 0644
+  when: ansible_hostname == "nexus"

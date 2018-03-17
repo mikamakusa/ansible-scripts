@@ -1,0 +1,43 @@
+---
+- name: Retrieve Updatescript Groovy Script
+  template:
+    src: "scripts/{{ nexus_scripts.updatescript }}.j2"
+    dest: "{{ nexus_install.path }}/nexus"
+    owner: "{{ nexus_install.owner }}"
+    group: "{{ nexus_install.owner }}"
+    mode: 0644
+  when: ansible_hostname == "nexus"
+
+- name: Execute Udpatescript
+  command: groovy -Dgroovy.grape.report.downloads=true -Dgrape.config=grapeConfig.xml {{ nexus_install.path }}/nexus/{{ nexus_scripts.updatescript }} -u "{{ nexus_config.user }}" -p "admin123" -f {{ nexus_install.path }}/nexus/{{ nexus_scripts.updatescript }} -h "http://localhost:{{ nexus_install.application_port }}"
+  when: ansible_hostname == "nexus"
+
+- name: Retrieve UpdateAdmin Groovy Script
+  template:
+    src: "scripts/{{ nexus_scripts.updateuser }}.j2"
+    dest: "{{ nexus_install.path }}/nexus"
+    owner: "{{ nexus_install.owner }}"
+    group: "{{ nexus_install.owner }}"
+    mode: 0644
+  when: ansible_hostname == "nexus"
+
+- name: Execute UpdateAdmin Script
+  shell: |
+    groovy -Dgroovy.grape.report.downloads=true -Dgrape.config=grapeConfig.xml {{ nexus_install.path }}/nexus/{{ nexus_scripts.updatescript }} -u "{{ nexus_config.user }}" -p "admin123" -f {{ nexus_install.path }}/nexus/{{ nexus_scripts.updateuser }} -h "http://localhost:{{ nexus_install.application_port }}"
+    curl -v -X POST -u {{ nexus_config.user }}:admin123 --header "Content-Type: text/plain" "http://localhost:{{ nexus_install.application_port }}/service/siesta/rest/v1/script/{{ nexus_scripts.updateuser }}/run"
+  when: ansible_hostname == "nexus"
+
+- name: Retrieve updateanonymous script
+  template:
+    src: "scripts/{{ nexus_scripts.updateanonymous }}.j2"
+    dest: "{{ nexus_install.path }}/nexus"
+    owner: "{{ nexus_install.owner }}"
+    group: "{{ nexus_install.owner }}"
+    mode: 0644
+  when: ansible_hostname == "nexus"
+
+- name: Execute updateanonymous Script
+  shell: |
+    groovy -Dgroovy.grape.report.downloads=true -Dgrape.config=grapeConfig.xml {{ nexus_install.path }}/nexus/{{ nexus_scripts.updatescript }} -u "{{ nexus_config.user }}" -f {{ nexus_install.path }}/nexus/{{ updateanonymous }} -h "http://localhost:{{ nexus_install.application_port }}"
+    curl -v -X POST -u {{ nexus_config.user }}:{{ nexus_config.password }} --header "Content-Type: text/plain" "http://localhost:{{ nexus_install.application_port }}/service/siesta/rest/v1/script/{{ nexus_scripts.updateanonymous }}/run"
+  when: ansible_hostname == "nexus"
