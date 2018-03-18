@@ -1,0 +1,29 @@
+- name: Stop Jenkins
+  systemd:
+    name: jenkins
+    state: stopped
+    daemon_reload: yes
+
+- name: Start Jenkins
+  systemd:
+    name: jenkins
+    state: started
+    daemon_reload: yes
+
+- name: Stop Nginx
+  systemd:
+    name: nginx
+    state: stopped
+    daemon_reload: yes
+
+- name: Start Nginx
+  systemd:
+    name: nginx
+    state: started
+    daemon_reload: yes
+
+- name: Restart Nginx
+  systemd:
+    name: nginx
+    state: restarted
+    daemon_reload: yes

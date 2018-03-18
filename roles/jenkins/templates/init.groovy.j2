@@ -1,0 +1,46 @@
+{% set admin_user = salt['cmd.run']('$(az keyvault secret show --output json --vault-name bvacx-key-vault --name jenkins | jq -r ".contentType")') %}
+{% set admin_password = salt['cmd.run']('$(az keyvault secret show --output json --vault-name bvacx-key-vault --name jenkins | jq -r ".value")') %}
+
+import jenkins.model.*
+import hudson.security.*
+import hudson.slaves.EnvironmentVariablesNodeProperty
+import hudson.security.csrf.DefaultCrumbIssuer
+
+def instance = Jenkins.getInstance()
+
+//  Add usable strategy
+def strategy = new hudson.security.FullControlOnceLoggedInAuthorizationStrategy()
+def realm = new hudson.security.HudsonPrivateSecurityRealm(false, false, null)
+
+//  Create admin account
+realm.createAccount("{{ jenkins_config.admin_user }}","{{ jenkins_config.admin_password }}")
+
+instance.setAuthorizationStrategy(strategy)
+instance.setSecurityRealm(realm)
+
+instance.save()
+
+//  Add Env variables for Azure Cloud Platform
+//globalNodeProperties = instance.getGlobalNodeProperties()
+//envVarsNodePropertyList = globalNodeProperties.getAll(EnvironmentVariablesNodeProperty.class)
+
+//newEnvVarsNodeProperty = null
+//envVars = null
+
+//if ( envVarsNodePropertyList == null || envVarsNodePropertyList.size() == 0 ) {
+//    newEnvVarsNodeProperty = new EnvironmentVariablesNodeProperty();
+//    globalNodeProperties.add(newEnvVarsNodeProperty)
+//    envVars = newEnvVarsNodeProperty.getEnvVars()
+//} else {
+//    envVars = envVarsNodePropertyList.get(0).getEnvVars()
+//}
+
+//envVars.put("ARM_ACCESS_KEY", "${var.access_key}")
+//envVars.put("ARM_CLIENT_ID", "${var.arm_client_id}")
+//envVars.put("ARM_CLIENT_SECRET", "${var.arm_client_secret}")
+//
+def instance = Jenkins.instance
+instance.setCrumbIssuer(new DefaultCrumbIssuer(true))
+
+instance.save()
+if (installed) instance.doSafeRestart()

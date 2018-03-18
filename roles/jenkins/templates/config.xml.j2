@@ -1,0 +1,57 @@
+<project>
+    <actions/>
+    <description/>
+    <keepDependencies>false</keepDependencies>
+    <properties/>
+    <canRoam>true</canRoam>
+    <disabled>false</disabled>
+    <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+    <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+    <triggers>
+        <hudson.triggers.SCMTrigger>
+            <spec>H/5 * * * *</spec>
+            <ignorePostCommitHooks>false</ignorePostCommitHooks>
+        </hudson.triggers.SCMTrigger>
+    </triggers>
+    <concurrentBuild>false</concurrentBuild>
+    <builders>
+        <hudson.tasks.Shell>
+            <command>./gradlew cleanAll build libs</command>
+        </hudson.tasks.Shell>
+        <javaposse.jobdsl.plugin.ExecuteDslScripts>
+            <targets>jobs/src/main/groovy/*.groovy</targets>
+            <usingScriptText>false</usingScriptText>
+            <scriptText/>
+            <ignoreExisting>false</ignoreExisting>
+            <removedJobAction>DELETE</removedJobAction>
+            <removedViewAction>DELETE</removedViewAction>
+            <lookupStrategy>JENKINS_ROOT</lookupStrategy>
+            <additionalClasspath>build/libs/*.jar build/*.jar</additionalClasspath>
+        </javaposse.jobdsl.plugin.ExecuteDslScripts>
+    </builders>
+    <publishers/>
+    <buildWrappers/>
+    <scm class="hudson.plugins.git.GitSCM">
+        <userRemoteConfigs>
+            <hudson.plugins.git.UserRemoteConfig>
+                <name>origin</name>
+                <url>ssh://bvacx@bvacx.visualstudio.com:22/infrastructure/_git/jenkins-jobs-seeder</url>
+                <credentialsId>gitscm</credentialsId>
+            </hudson.plugins.git.UserRemoteConfig>
+        </userRemoteConfigs>
+        <branches>
+            <hudson.plugins.git.BranchSpec>
+                <name>master</name>
+            </hudson.plugins.git.BranchSpec>
+        </branches>
+        <configVersion>2</configVersion>
+        <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+        <gitTool>Default</gitTool>
+    </scm>
+    <logRotator>
+        <daysToKeep>15</daysToKeep>
+        <numToKeep>10</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+    </logRotator>
+</project>

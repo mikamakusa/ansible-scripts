@@ -1,0 +1,44 @@
+---
+- name: Ensure Jenkins Configuration is present
+  file:
+    path: "{{ jenkins_config.config_folder }}"
+    owner: "{{ jenkins_config.owner }}"
+    group: "{{ jenkins_config.owner }}"
+    mode: 0755
+  when: ansible_hostname == "{{ jenkins_master_hostname }}"
+
+- name: Manage Seed job project
+  jenkins_job:
+    config: "{{ lookup('file', 'template/config.xml.j2')}}"
+    name: seed
+    password: "{{ jenkins_config.credentials }}"
+    user: "{{ jenkins_config.credentials }}"
+    url: "http://localhost:{{ jenkins_config.port }}"
+  when: ansible_hostname == "{{ jenkins_master_hostname}}"
+
+- name: Manage configuration script
+  template:
+    src: init.groovy.j2
+    dest: "{{ jenkins_config.config_folder}}/init.groovy"
+    owner: "{{ jenkins_config.owner }}"
+    group: "{{ jenkins_config.owner }}"
+    mode: 0644
+  when: ansible_hostname == "{{ jenkins_master_hostname }}"
+
+- name: Manage jenkins plugins
+  jenkins_plugin:
+    name: "{{ item.key }}"
+    url_password: "{{ jenkins_config.credentials }}"
+    url: "http://localhost:{{ jenkins_config.port }}"
+  with_dict:
+    "{{ jenkins_plugins }}"
+  when: ansible_hostname == "{{ jenkins_master_hostname }}"
+
+- name: Execute Jenkins Config Groovy Script
+  jenkins_script:
+    script: "{{ jenkins_config.config_folder}}/init.groovy"
+    user: "{{ jenkins_config.credentials }}"
+    password: "{{ jenkins_config.credentials }}"
+    url: "http://localhost:{{ jenkins_config.port }}"
+    validate_certs: no
+  when: ansible_hostname == "{{ jenkins_master_hostname }}"

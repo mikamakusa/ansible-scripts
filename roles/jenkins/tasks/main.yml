@@ -1,0 +1,16 @@
+---
+
+- include_vars: config.yaml
+  when: ansible_hostname == "jenkins"
+
+- include_tasks: install.yml
+  tags: jenkins_install
+  when: ansible_hostname == "jenkins"
+
+- include_tasks: config.yml
+  tags: jenkins_configured
+  when: ansible_hostname == "jenkins"
+
+- include_tasks: securise.yml
+  tags: jenkins_secured
+  when: ansible_hostname == "jenkins"

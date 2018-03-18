@@ -1,0 +1,26 @@
+---
+
+- name: Install Jenkins Prerequisites
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "{{ java_install.pkg }}"
+    - "{{ jq_pkg }}"
+    - "{{ collectd_pkg }}"
+  when: ansible_hostname == "{{ jenkins_master_hostname }}"
+
+- name: Install jenkins
+  apt:
+    deb: "https://{{ jenkins_install.url }}/{{ jenkins_install.platform }}-stable/binary/{{ jenkins_install.pkg }}_{{ jenkins_install.version }}.deb"
+
+- name: disable jenkins wizard
+  lineinfile:
+    path: "{{ jenkins_config.path }}"
+    regexp: "{{ jenkins_config.default_arg }}"
+    insertafter: "{{ jenkins_config.arg }}"
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_hostname == "{{ jenkins_master_hostname }}"
+  notify: Start Jenkins

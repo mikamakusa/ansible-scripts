@@ -1,0 +1,134 @@
+jenkins_installed: yes
+jenkins_configured: yes
+jenkins_secured: yes
+
+jenkins_master_hostname: jenkins-master
+jenkins_slave_hostname: jenkins_slave
+
+java_install:
+  pkg: openjdk-8-jre-headless
+
+jq_pkg: jq
+collectd_pkg: collectd
+
+jenkins_install:
+  url: pkg.jenkins.io
+  pkg: jenkins
+  version: 2.73.3_all
+  platform: debian
+jenkins_config:
+  path: /etc/default/jenkins
+  arg: -Djenkins.install.runSetupWizard=false
+  default_arg: -Djava.awt.headless=true
+  config_folder: /var/lib/jenkins
+  owner: jenkins
+  credentials: admin
+  port: 8080
+  admin_user:
+  admin_password:
+jenkins_plugins:
+  active-directory: active-directory
+  ansicolor: ansicolor
+  ant: ant
+  authentication-tokens: authentication-tokens
+  azure-credentials: azure-credentials
+  azure-vm-agents: azure-vm-agents
+  bouncycastle-api: bouncycastle-api
+  branch-api: branch-api
+  cloudbees-credentials: cloudbees-credentials
+  build-name-setter: build-name-setter
+  build-monitor-plugin: build-monitor-plugin
+  build-timeout: build-timeout
+  cloud-stats: cloud-stats
+  corbetura: corbetura
+  conditional-buildstep: conditional-buildstep
+  copyartifact: copyartifact
+  credentials-binding: credentials-binding
+  credentials: credentials
+  display-url-api: display-url-api
+  docker-commons: docker-commons
+  docker-workflow: docker-workflow
+  durable-task: durable-task
+  emailext-template: emailext-template
+  email-ext: email-ext
+  embeddable-build-status: embeddable-build-status
+  envinject: envinject
+  envinject-api: envinject-api
+  external-monitor-job: external-monitor-job
+  extensible-choice-parameter: extensible-choice-parameter
+  cloudbees-folder: cloudbees-folder
+  git: git
+  git-client: git-client
+  git-server: git-server
+  icon-shim: icon-shim
+  jackson2-api: jackson2-api
+  javadoc: javadoc
+  ace-editor: ace-editor
+  handlebars: handlebars
+  jquery-detached: jquery-detached
+  momentjs: momentjs
+  job-dsl: job-dls
+  junit: junit
+  ldap: ldap
+  mailer: mailer
+  matrix-auth: matrix-auth
+  matrix-project: matrix-project
+  maven-plugin: maven-plugin
+  antisamy-markup-formatter: antisamy-markup-formatter
+  pam-auth: pam-auth
+  parameterized-trigger: parameterized-trigger
+  workflow-aggregator: worflow-aggregator
+  pipeline-graph-analysis: pipeline-graph-analysis
+  workflow-api: workflow-api
+  workflow-basic-steps: workflow-basic-steps
+  pipeline-build-step: pipeline-model-step
+  pipeline-model-definition: pipeline-model-definition
+  workflow-cps: workflow-cps
+  pipeline-input-step: pipeline-input-step
+  workflow-job: workflow-job
+  workflow-multibranch: workflow-multibranch
+  pipeline-milestone-step: pipeline-milestone-step
+  workflow-durable-task-step: workflow-durable-task-step
+  workflow-scm-step: workflow-scm-step
+  workflow-cps-global-lib: workflow-cps-global-lib
+  pipeline-stage-step: pipeline-stage-step
+  pipeline-model-definition: pipeline-model-definition
+  pipeline-stage-view: pipeline-stage-view
+  workflow-step-api: workflow-step-api
+  workflow-support: workflow-support
+  plain-credentials: plain-credentials
+  rebuild: rebuild
+  resource-disposer: resource-disposer
+  role-strategy: role-strategy
+  run-condition: run-condition
+  scm-api: scm-api
+  simple-theme-plugin: simple-theme-plugin
+  script-security: script-security
+  slack: slack
+  slack-uploader: slack-uploader
+  ssh-credentials: ssh-credentials
+  ssh-slaves: ssh-slaves
+  structs: structs
+  tfs: tfs
+  timestamper: timestamper
+  token-macro: token-macro
+  windows-azure-storage: windows-azure-storage
+  windows-slaves: windows-slaves
+  ws-cleanup: ws-cleanup
+nginx_install:
+  pkg: nginx
+nginx_config:
+  http_port: 80
+  https_port: 443
+  jenkins_port: 8080
+  domain: jenkins.local
+  access_log: jenkins.log
+  cert_file: cert
+  cert_path: /etc/nginx
+  conf_file: jenkins.conf
+  conf_path: /etc/nginx/sites-available
+  link_path: /etc/nginx/sites-enabled
+  dhparam_file: dhparams.pem
+  dhparam_path: /etc/nginx/
+ssl_install:
+  pkg: openssl
