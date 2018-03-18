@@ -1,0 +1,38 @@
+---
+
+- name: Install Sozu Prerequisites
+  apt:
+    name: "{{ item }}"
+    state: installed
+  with_items:
+    - collectd
+    - git
+    - mailutils
+    - postfix
+    - wget
+    - file
+    - gzip
+    - bzip2
+    - bsdmainutils
+    - util-linux
+    - tmux
+    - lib32gcc1
+    - libstdc++6
+    - libstdc++6:i386
+    - pkg-config
+    - libssl-dev
+    - openssl
+  when: ansible_hostname == "sozu"
+
+- name: Download Rust
+  get_url:
+    url: "http://{{ sozu.rust_install.url }}/{{ sozu.rust_install.script }}"
+    dest: "{{ sozu.rust_install.path }}/{{ sozu.rust_install.script }}"
+    mode: 0755
+    owner: {{ sozu.install.owner }}
+    group: {{ sozu.install.owner }}
+  when: ansible_hostname == "sozu"
+
+- name: Install Rust
+  shell: "{{ sozu.rust_install.path }}/{{ sozu.rust_install.script }}"
+  when: ansible_hostname == "sozu"

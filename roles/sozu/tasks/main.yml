@@ -1,0 +1,16 @@
+---
+
+- include_vars: config.yaml
+  when: ansible_hostname == "sozu"
+
+- include_tasks: prerequisites.yml
+  tags: prerequisites_installed
+  when: ansible_hostname == "sozu"
+
+- include_tasks: install.yml
+  tags: sozu_installed
+  when: ansible_hostname == "sozu"
+
+- include_tasks: config.yml
+  tags: sozu_configured
+  when: ansible_hostname == "sozu"

@@ -1,0 +1,5 @@
+---
+
+- name: Action to perform on backends
+  command: {{ sozu.install.path }}/{{ sozu.install.name }}/target/debug/sozuctl --config {{ sozu.config.config_path }}/{{ sozu.config.config_file }}  backend {{ machines.name }} --id {{ machines.id }} --ip {{ machines.ip }} --port {{ machines.port }}
+  when: ansible_hostname == "sozu"

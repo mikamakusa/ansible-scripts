@@ -1,0 +1,14 @@
+---
+
+- name: Clone sozu from git Repository
+  git:
+    repo: "http://{{ sozu.install.url }}"
+    dest: "{{ sozu.install.path }}/sozu"
+    clone: yes
+  when: ansible_hostname == "sozu"
+
+- name: Install Sozu:
+  shell: |
+    {{ sozu.install.path }}/sozu/ctl/cargo build
+    {{ sozu.install.path }}/sozu/bin/cargo build
+  when: ansible_hostname == "sozu"

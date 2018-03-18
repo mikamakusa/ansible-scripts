@@ -1,0 +1,11 @@
+- name: Start sozu
+  systemd:
+    name: sozu
+    daemon_reload: yes
+    state: started
+
+- name: Stop Sozu
+  systemd:
+    name: sozu
+    daemon_reload: yes
+    state: stopped

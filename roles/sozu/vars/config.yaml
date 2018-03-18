@@ -1,0 +1,39 @@
+sozu:
+  rust_install:
+    url: static.rust-lang.org
+    script: rustup.sh
+    owner: root
+  install:
+    name: sozu
+    url: github.com/sozu-proxy/sozu
+    path: /opt
+  config:
+    service_path: /lib/systemd/system
+    service_file: sozu.service
+    owner: root
+    config_file_path: /root/
+    config_file: config.toml
+    command_socket: ./command_folder/sock
+    saved_state: ./state.json
+    log_level: info
+    log_target: stdout
+    command_buffer_size: 16384
+    worker_count:
+    handle_process_affinity:
+    metrics_address:
+    port:
+    http_address:
+    max_connections:
+    port:
+    buffer_size:
+    hostname:
+    frontends:
+    backends: "192.168.1.21:8080", "192.168.1.22:8080", "192.168.1.22:8080"
+
+action_on_backends:
+machines:
+  action:
+  name:
+  id:
+  ip:
+  port:
