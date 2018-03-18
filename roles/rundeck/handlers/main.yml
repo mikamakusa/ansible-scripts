@@ -1,0 +1,17 @@
+---
+
+- name: Start Rundeck
+  service: 
+    enabled: yes  
+    name: rundeck
+    state: started
+
+- name: Stop Rundeck
+  service:
+    name: rundeck
+    state: stopped
+
+- name: Restart Rundeck
+  service:
+    name: rundeck
+    state: restarted

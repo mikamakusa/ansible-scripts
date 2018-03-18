@@ -1,0 +1,10 @@
+---
+
+- name: install jdk
+  apt:
+    name: openjdk-8-jre-headless
+    state: installed
+
+- name: Install Rundeck
+  apt: deb="http://dl.bintray.com/rundeck/rundeck-deb/rundeck_2.10.7-1-GA_all.deb"
+  notify: Start Rundeck

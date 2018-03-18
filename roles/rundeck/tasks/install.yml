@@ -1,0 +1,70 @@
+---
+
+- include_tasks: centos.yml
+  when: ansible_os_family == "RedHat"
+
+- include_tasks: debian.yml
+  when: ansible_os_family == "Debian"
+
+- name: "Adjust Rundeck ServerURL"
+  lineinfile:
+    path: /etc/rundeck/rundeck-config.properties
+    regexp: "grails.serverURL=http://localhost:4440"
+    line: "grails.serverURL=http://{{ server_bind_address }}"
+  when: rundeck_path == "" 
+  become: yes
+
+- name: "Adjust Rundeck ServerURL"
+  lineinfile:
+    path: /etc/rundeck/rundeck-config.properties
+    regexp: "grails.serverURL=http://{{ ansible_host }}"
+    line: "grails.serverURL=http://{{ server_bind_address }}/{{ rundeck_path }}"
+  when: rundeck_path != ""         
+  become: yes
+
+- name: Add line to RDECK_JVM variable
+  lineinfile: 
+    backup: yes 
+    dest: /etc/rundeck/profile
+    line: "{{ item.line }}"
+    regexp: "{{ item.regexp }}"
+    state: present
+  with_items:
+    - {line: "-Dserver.http.port=$RDECK_HTTP_PORT -Dserver.web.context=/rundeck", regexp: "-Dserver.http.port=$RDECK_HTTP_PORT" }
+  become: yes
+  notify: Start Rundeck
+
+- name: Install Apache and configure it as reverse proxy to access rundeck
+  yum:
+    name: apache2
+    state: present
+  become: yes
+  when: ansible_os_family == "Debian"
+
+- name: Install Apache and configure it as reverse proxy to access rundeck
+  yum:
+    name: httpd
+    state: present
+  become: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Create rundeck configuration file for Apache Web Server
+  template: 
+    backup: yes  
+    dest: "{{ item.dest }}"
+    src: "{{ item.src }}" 
+  become: yes
+  notify: Start apache
+  with_items:
+    - {src: "rundeck.conf.j2", dest: "/etc/httpd/conf.d/"}
+
+- name: Wait for rundeck and apache port opening
+  wait_for: 
+    port: "{{ item }}"
+    state: started
+  become: yes
+  with_items:
+    - 4440
+    - 80
+
+- include_tasks: post_conf.yml

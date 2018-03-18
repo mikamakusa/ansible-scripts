@@ -1,0 +1,36 @@
+---
+- name: "enable encryption of key storage"
+  lineinfile:
+    path: /etc/rundeck/rundeck-config.properties
+    regexp: "{{item.regex}}"
+    line: "{{item.line}}"
+  with_items:
+    - {regex: "^rundeck.storage.converter.1.type=", line: "rundeck.storage.converter.1.type=jasypt-encryption"}
+    - {regex: "^rundeck.storage.converter.1.path=", line: "rundeck.storage.converter.1.path=keys"}
+    - {regex: "^rundeck.storage.converter.1.config.encryptorType=", line: "rundeck.storage.converter.1.config.encryptorType=basic"}
+    - {regex: "^rundeck.storage.converter.1.config.password=", line: "rundeck.storage.converter.1.config.password=secret"} #TODO var sec
+  become: yes
+
+- name: "Ensure /etc/sysconfig directory is present"
+  file:
+    path: /etc/sysconfig
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  become: yes
+
+- name: "use /dev/urandom"
+  copy:
+    content: 'export RDECK_JVM_OPTS="-Djava.security.egd=file:/dev/./urandom"'
+    dest: /etc/sysconfig/rundeckd
+    owner: root
+    group: rundeck
+    mode: 0644
+  notify: "Restart Rundeck"
+  become: yes
+
+- name: Wait for rundeck port opening
+  wait_for: 
+    port: 4440 
+    state: started

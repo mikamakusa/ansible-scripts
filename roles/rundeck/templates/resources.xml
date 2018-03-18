@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    {% set counter = 0 %}
+    {% set db_group= counter|string + '-db' %}
+    {% for item in groups["orchestration"] %}
+    <node name="{{ hostvars[item]['inventory_hostname'] }}" description="database server" tags="{{db_tag}}"
+          hostname="{{ hostvars[item]['ansible_default_ipv4']['address'] }}" username="centos"
+          ssh-keypath="{{rundeck_ssh_dir}}"
+          osFamily="unix" osName="Linux">
+  </node>
+    {% set counter = counter + 1%}
+    {% endfor %}
+</project>
