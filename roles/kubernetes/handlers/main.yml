@@ -1,0 +1,22 @@
+---
+
+- name: Start Docker
+  systemd:
+    name: docker
+    state: started
+
+- name: Stop Docker
+  systemd:
+    name: docker
+    state: stopped
+
+- name: Stop kubelet
+  systemd:
+    name: kubelet
+    state: stopped
+
+- name: Start kubelet
+  systemd:
+    name: kubelet
+    state: started
+    daemon_reload: yes

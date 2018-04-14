@@ -1,0 +1,48 @@
+prerequisites_installed: yes
+
+kubernetes_prerequisites:
+  - apt-transport-https
+  - ca-certificates
+  - openssl
+  - python-pip
+  - curl
+  - gnupg2
+  - git
+  - vim
+
+owner: root
+
+etcd_version: 2.0.0
+kube_version: 1.8.5
+docker_version: 17.09.0
+install_path: /opt/
+extension: tar.gz
+
+kube_install:
+  repo:
+    apt_key_id: 374C208A7317B0F
+    url: packages.cloud.google.com/apt/doc/apt-key.gpg
+    deb: apt.kubernetes.io
+  admin:
+    pkgs:
+      - kubelet
+      - kubectl
+      - kubernetes-cni
+      - kubeadm
+  worker:
+    pkgs:
+      - kubeadm
+      - kubelet
+      - kubernetes*
+
+docker_install:
+  url: 'download.docker.com/{{ ansible_system }}/{{ ansible_os_family }}/{{ ansible_distribution_release }}/stretch/pool/stable/amd64/'
+  pkg: 'docker-ce_{{docker_version}}~ce-0~debian_amd64.deb'
+
+overlay: 
+  name: weave # weave/flannel/calico/romana/kube-router/canal
+  cidr: # if overlay == flannel/canal/calico
+  url: cloud.weave.works/k8s/net?k8s-version # if overlay == flannel/canal/calico
+
+dashboard:
+  url: https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml

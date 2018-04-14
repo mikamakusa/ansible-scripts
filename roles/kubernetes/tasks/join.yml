@@ -1,0 +1,23 @@
+---
+
+- name: copy kubelet service file
+  template:
+    src: 10-kubeadm.conf
+    dest: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+    owner: "{{ owner }}"
+    group: "{{ owner }}"
+    mode: 0644
+    force: yes
+
+- name: Recover Join.sh file
+  template: 
+    dest: /tmp/ 
+    group: "{{ owner }}"
+    mode: 0777
+    owner: "{{ owner }}"
+    src: join.sh
+
+- name: Join kubernetes cluster
+  shell: "{{ item }}"
+  with_items: 
+    - sh /tmp/join.sh

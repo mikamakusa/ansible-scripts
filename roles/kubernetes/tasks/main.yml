@@ -1,0 +1,20 @@
+---
+
+- include_vars: config.yaml
+  when: ansible_hostname == "kube0" or ansible_hostname == "kube1" or ansible_hostname == "kube2" or ansible_hostname == "kube3" or ansible_hostname == "kube4"
+
+- include_tasks: prerequisites.yml
+  tags: prerequisites_installed
+  when: ansible_hostname == "kube0" or ansible_hostname == "kube1" or ansible_hostname == "kube2" or ansible_hostname == "kube3" or ansible_hostname == "kube4"
+
+- include_tasks: install.yml
+  tags: kubernetes_installed
+  when: ansible_hostname == "kube0" or ansible_hostname == "kube1" or ansible_hostname == "kube2" or ansible_hostname == "kube3" or ansible_hostname == "kube4"
+
+- include_tasks: init.yml
+  tags: kubernetes_initialized
+  when: ansible_hostname == "kube0"
+
+- include_tasks: join.yml
+  tags: kubernetes_master_joined
+  when: ansible_hostname == "kube1" or ansible_hostname == "kube2" or ansible_hostname == "kube3" or ansible_hostname == "kube4"

@@ -1,0 +1,25 @@
+---
+
+- name: Install prerequisites packages
+  apt:
+    name: "{{ item }}"
+    #update_cache: yes
+    state: present
+    #force: yes
+  with_items:
+    - "{{ kubernetes_prerequisites }}"
+
+- name: Get Docker
+  get_url: 
+    dest: /tmp/get-docker.sh 
+    url: https://get.docker.com 
+
+- name: Install Docker
+  shell: |
+    sh /tmp/get-docker.sh
+  notify: Start Docker
+
+- name: Install Docker Python Library
+  pip:
+    name: docker-py
+    state: present

@@ -1,0 +1,110 @@
+---
+
+- name: Register Master IP Address
+  shell: hostname -I | awk -F " " '{print $2}'
+  register: kube0_ip
+  when: ansible_hostname == "kube0"
+
+- name: add master IP to hosts
+  add_host:
+    name: "kube_master_ip"
+    master_ip: "{{ kube0_ip.stdout }}"
+  when: ansible_hostname == "kube0"
+
+- name: Update sysctl configuration
+  sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: 1
+    sysctl_set: yes
+    state: present
+    reload: yes
+  when: overlay.name == "weave" or overlay.name == "kube-router" or overlay.name == "romana" and ansible_hostname == "kube0"
+
+- name: copy kubelet service file
+  template:
+    src: 10-kubeadm.conf
+    dest: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+    owner: "{{ owner }}"
+    group: "{{ owner }}"
+    mode: 0644
+    force: yes
+
+- name: Initialize kubernetes on the master for weave/kube-router/romana as overlay
+  shell: "kubeadm init --node-name {{ ansible_hostname }} --apiserver-advertise-address={{ hostvars['kube_master_ip']['master_ip'] }} --skip-preflight-checks"
+  when: overlay.name == "weave" or overlay.name == "kube-router" or overlay.name == "romana" and ansible_hostname == "kube0"
+
+- name: Initialize kubernetes on the master for canal/calico/flannel as overlay
+  shell: "kubeadm init -node-name {{ ansible_hostname }} --pod-network-cidr={{ overlay.cidr }} --apiserver-advertise-address={{ hostvars['kube_master_ip']['master_ip'] }} --skip-preflight-checks"
+  when: overlay.name == "canal" or overlay.name == "calico" or overlay.name == "flannel" and ansible_hostname == "kube0"
+
+- name: Register Kubernetes Token
+  shell: kubeadm token list | cut -d ' ' -f1 | sed -n '2p'
+  register: k8s_token
+  when: ansible_hostname == "kube0"
+
+- name: Certificate creation and hash
+  shell: openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
+  register: k8s_master_ca_hash
+  when: ansible_hostname == "kube0"
+
+- name: add Kubernetes token and CA hash to hosts
+  add_host:
+    name: "kube_token"
+    token: "{{ k8s_token.stdout }}"
+    hash: "{{ k8s_master_ca_hash.stdout }}"
+
+- name: set Kube Token as a fact
+  set_fact: 
+    k8s_token: "{{ k8s_token.stdout }}"
+
+- name: Register Kubernetes version
+  shell: kubectl version | base64 | tr -d '\n'
+  register: kube_vers
+  when: ansible_hostname == "kube0"
+
+- name: add kubernetes version to host
+  add_host:
+    name: "kube_version"
+    kvers: "{{ kube_vers.stdout }}"
+  when: ansible_hostname == "kube0"
+
+- name: Create KUBECONFIG environment
+  shell: "{{ item }}"
+  with_items:  
+    - mkdir -p $HOME/.kube
+    - sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+    - sudo chown $(id -u):$(id -g) $HOME/.kube/config
+  when: ansible_hostname == "kube0"
+
+- name: Deploy Network Overlay - Weave-Net
+  shell: "{{ item }}"
+  with_items:
+    - "kubectl apply -f https://{{ overlay.url }}={{ hostvars['kube_version']['kvers'] }}"
+  when: overlay.name == "weave" and ansible_hostname == "kube0"
+
+- name: Deploy Network Overlay - Calico/Flannel
+  shell: "{{ item }}"
+  with_items:
+    - "kubectl apply -f {{ overlay.url }}"
+  when: overlay.name == "calico" or overlay.name == "flannel" or overlay.name == "romana" and ansible_hostname == "kube0"
+
+- name: Deploy Network Overlay - Canal
+  shell: "{{ item }}"
+  with_items:
+    - "kubectl apply -f {{ overlay.url1 }}"
+    - "kubectl apply -f {{ overlay.url2 }}"
+  when: overlay.name == "canal" and ansible_hostname == "kube0"
+
+- name: install dashboard
+  shell: "{{ item }}"
+  with_items:
+    - "kubectl apply -f {{ dashboard.url }}"
+  when: ansible_hostname == "kube0" 
+
+- name: Create file for agent
+  copy:   
+    content: |
+      #!/bin/bash
+      kubeadm join --token {{ hostvars['kube_token']['token'] }} {{ hostvars['kube_master_ip']['master_ip'] }}:6443 --discovery-token-unsafe-skip-ca-verification
+    dest: /vagrant/ansible-scripts/roles/kubernetes/templates/join.sh
+  when:  ansible_hostname == "kube0"

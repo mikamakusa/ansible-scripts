@@ -1,0 +1,27 @@
+---
+
+- name: Add keubernetes Key
+  apt_key: 
+    url: "https://{{ kube_install.repo.url }}"
+
+- name: Add Kubernetes repo
+  apt_repository:
+    repo: "deb https://{{ kube_install.repo.deb }}/ kubernetes-xenial main"
+    state: present
+    update_cache: yes
+
+- name: Install Kubernetes admin
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "{{ kube_install.admin.pkgs }}"
+  when: ansible_hostname == "kube0"
+
+- name: Install kubernetes workers
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "{{ kube_install.worker.pkgs }}"
+  when: ansible_hostname != "kube0"
