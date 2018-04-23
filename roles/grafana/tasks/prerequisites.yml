@@ -1,0 +1,38 @@
+---
+- name: Install Python Modules
+  pip:
+    name: "{{ item }}"
+  with_items:
+    - elasticsearch
+    - influxdb
+  when: ansible_hostname == "grafana"
+
+- name: install InfluxDB
+  apt:
+    deb: "https://{{ influxdb_install.url }}/{{ influxdb_install.pkg }}"
+  when: ansible_hostname == "grafana"
+
+- name: Configure influxDB
+  template:
+    src: "{{ influxdb_config.file }}.j2"
+    dest: "{{ influxdb_config.path }}/{{ influxdb_config.file }}"
+    owner: "{{ influxdb_config.owner }}"
+    group: "{{ influxdb_config.owner }}"
+    mode: 0644
+  when: ansible_hostname == "grafana"
+
+- name: Create typesDB config file for influxdb
+  template:
+    src: "{{ influxdb_config.typesdb_file }}.j2"
+    dest: "{{ influxdb_config.path }}/{{ influxdb_config.typesdb_file }}"
+    owner: "{{ influxdb_config.owner }}"
+    group: "{{ influxdb_config.owner }}"
+    mode: 0644
+  when: ansible_hostname == "grafana"
+  notify: Start InfluxDB
+
+- name: Create influxdb Database
+  influxdb_database:
+    hostname: "{{ influxdb_database.host }}"
+    database_name: "{{ influxdb_database.name }}"
+  when: ansible_hostname == "grafana"

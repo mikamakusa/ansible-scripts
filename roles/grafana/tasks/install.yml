@@ -1,0 +1,17 @@
+---
+
+- name: Install Grafana
+  apt:
+    deb: "{{ grafana_install.url }}/{{ grafana_install.pkg }}"
+  when: ansible_hostname == "grafana"
+  notify: Start Grafana
+
+- name: Update Grafana Default Admin password
+  shell: |
+    "curl -X PUT -H "Content-Type: application/json" -d '{"oldPassword": "admin", "newPassword": "{{ grafana_config.passw }}","confirmNew": "{{ grafana_config.passw }}"}' http://{{ grafana_config.login }}:admin@{{ grafana_config.host }}:{{ grafana_config.port }}/api/user/password"
+  when: ansible_hostname == "grafana"
+
+- name: Create InfluxDB Datasource for Grafana
+  shell: |
+    "curl -X POST -H "Content-Type: application/json" -d '{"name": "{{ influxdb_config.name }}", "type": "{{ grafana_config.datatype }}", "url": "http://{{ influxdb_config.host }}:{{ influxdb_config.port }}", "access": "proxy", "basicAuth": false, "database": "{{ grafana_config.datasource }}", "user": "{{ influxdb_config.user }}", "password": "{{ influxdb_config.pass }}", "is_default": true}' http://{{ grafana_config.login }}:{{ grafana_config.passw }}@localhost:3000/api/datasources"
+  when: ansible_hostname == "grafana"

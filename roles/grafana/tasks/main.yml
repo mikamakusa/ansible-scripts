@@ -1,0 +1,16 @@
+---
+
+- include_vars: config.yaml
+  when: ansible_hostname == "influxdb" or ansible_hostname == "grafana" or ansible_hostname == "collectd"
+
+- include_tasks: prerequisites.yml
+  tags: prerequisites_installed
+  when: ansible_hostname == "influxdb" or ansible_hostname == "grafana" or ansible_hostname == "collectd"
+
+- include_tasks: install.yml
+  tags: grafana_installed
+  when: ansible_hostname == "influxdb" or ansible_hostname == "grafana" or ansible_hostname == "collectd"
+
+- include_tasks: securise.yml
+  tags: grafana_secured
+  when: ansible_hostname == "influxdb" or ansible_hostname == "grafana" or ansible_hostname == "collectd"
