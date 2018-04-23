@@ -1,0 +1,81 @@
+---
+
+- name: "Ensure {{ item }} Group are present"
+  group: name="{{ item }}"  state=present
+  with_items:
+    - "{{ groups }}"
+
+- name: "Ensure {{ item.user }} User are present"
+  user: group="{{ item.group }}" name="{{ item.user }}" state=present
+  with_items:
+    - { group: "kafka", user: "kafka"}
+    - { group: "zookeeper", user: "zookeeper"}
+
+# Java
+- name: Ensure java is present
+  apt: name="openjdk-8-jre-headless" state=installed  update_cache=yes
+  when: ansible_os_family == "Debian"
+
+- name: Ensure java is present
+  yum: name="java-1.8.0-openjdk" state=installed update_cache=yes
+  when: ansible_os_family == "RedHat"
+
+# Zookeeper
+- name: Download Zookeeper
+  unarchive: 
+    dest: "/opt/"
+    group: root 
+    owner: root 
+    src: "http://apache.org/dist/zookeeper/zookeeper-{{ zk_version }}/zookeeper-{{ zk_version }}.tar.gz"
+    remote_src: yes
+
+- name: Ensure Zookeeper Symbolic Link is created
+  file:  
+    path: /opt/zookeeper
+    src: "/opt/zookeeper-{{ zk_version }}"
+    owner: "zookeeper"
+    group: "zookeeper"
+    state: link
+
+- name: Create zookeeper daemon
+  template:
+    dest: /lib/systemd/system/zookeeper.service
+    group: root
+    owner: root
+    src: zookeeper.service.j2
+
+- name: Ensure data directory for zookeeper is present
+  file: 
+    group: "zookeeper" 
+    owner: "zookeeper" 
+    path: "/opt/data" 
+    state: directory
+
+- name: Create zookeeper configuration file
+  copy: 
+    content: |
+		tickTime = 2000
+		dataDir = /opt/data
+		clientPort = 2181
+		initLimit = 5
+		syncLimit = 2 
+    dest: /opt/zookeeper/conf/zoo.cfg
+  notify: start zookeeper
+
+# Kafka
+- name: Ensure Kafka directory is present
+  file:
+    path: /opt/kafka
+    owner: root
+    group: root
+    state: directory
+
+- name: Download Kafka Binaries
+  unarchive:
+    dest: "/opt/kafka"
+    group: root
+    owner: root
+    src: http://mirror.cc.columbia.edu/pub/software/apache/kafka/1.1.0/kafka_2.11-1.1.0.tgz
+    remote_src: yes
+    extra_opts: 
+      - "--strip 1"

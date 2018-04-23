@@ -1,0 +1,18 @@
+--- 
+
+- name: start zookeeper
+  systemd:
+    name: zookeeper
+    state: started
+    enabled: yes
+
+- name: stop zookeeper
+  systemd:
+    name: zookeeper
+    state: stopped
+
+- name: restart zookeeper
+  systemd:
+    name: zookeeper
+    state: restarted
+    daemon_reload: yes
