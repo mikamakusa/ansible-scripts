@@ -1,0 +1,18 @@
+---
+
+- name: Start Cassandra
+  systemd:
+    name: cassandra
+    state: started
+    enabled: yes
+
+- name: Stop Cassandra
+  systemd:
+    name: cassandra
+    state: stopped
+
+- name: Restart Cassandra
+  systemd:
+    name: cassandra
+    state: restarted
+    daemon_reload: yes
