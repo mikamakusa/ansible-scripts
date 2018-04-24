@@ -1,77 +1,16 @@
 ---
 
-# Java
-- name: Ensure java is present
-  apt: 
-    name: "openjdk-8-jre-headless" 
-    state: installed  
-    update_cache: yes
-  when: ansible_os_family == "Debian"
+- name: Install Java
+  include_tasks: java.yml
 
-- name: Ensure java is present
-  yum: 
-    name: "java-1.8.0-openjdk" 
-    state: installed 
-    update_cache: yes
-  when: ansible_os_family == "RedHat"
-
-# Cassandra
-- name: Unarchive Cassandra
-  unarchive:
-    src: http://www.apache.org/dyn/closer.lua/cassandra/{{ cass_version }}/apache-cassandra-{{ cass_version }}-bin.tar.gz
-    dest: "/opt/"
-    owner: root
-    group: root
-    remote_src: yes
+- name: Install Cassandra
+  include_tasks: archive_cassandra.yml
   when: ansible_os_family != "Debian" or ansible_os_family != "RedHat"
 
-- name: make symlink
-  file: 
-    path: "/opt/cassandra"
-    src: "/opt/apache-cassandra-{{ cass_version }}" 
-    state: link
-  when: ansible_os_family != "Debian" or ansible_os_family != "RedHat"  
-
-## Cassandra - Debian like
-- name: Add Cassandra Repo-key
-  apt_key: 
-    state: present  
-    url: https://www.apache.org/dist/cassandra/KEYS
-  when: ansible_os_family == "Debian"
-
-- name: Add Cassandra Repository
-  apt_repository: 
-    filename: cassandra
-    repo: "deb http://www.apache.org/dist/cassandra/debian {{ cass_version }} main" 
-    state: present  
-    update_cache: yes
+- name: Install Cassandra
+  include_tasks: debian_cassandra.yml
   when: ansible_os_family == "Debian"
 
 - name: Install Cassandra
-  apt: 
-    name: cassandra
-    state: installed
-    update_cache: yes
-  when: ansible_os_family == "Debian"
-  notify: Start Cassandra
-
-## Cassandra - RedHat Like
-- name: Add Cassandra Repository
-  yum_repository:
-    name: cassandra
-    description: Cassandra repository
-    baseurl: https://www.apache.org/dist/cassandra/redhat/{{ cass_version }}/
-    gpgcheck: yes
-    gpgkey: https://www.apache.org/dist/cassandra/KEYS
-    repo_gpgcheck: yes
-    enabled: yes
-    state: present
+  include_tasks: redhat_cassandra.yml
   when: ansible_os_family == "RedHat"
-
-- name: Install Cassandra
-  yum: 
-    name: cassandra 
-    state: installed
-    update_cache: yes
-  when: ansible_os_family == "RedHat"
-  notify: Start Cassandra

@@ -1,0 +1,18 @@
+---
+
+# Cassandra
+- name: Unarchive Cassandra
+  unarchive:
+    src: http://www.apache.org/dyn/closer.lua/cassandra/{{ cass_version }}/apache-cassandra-{{ cass_version }}-bin.tar.gz
+    dest: "/opt/"
+    owner: root
+    group: root
+    remote_src: yes
+  when: ansible_os_family != "Debian" or ansible_os_family != "RedHat"
+
+- name: make symlink
+  file: 
+    path: "/opt/cassandra"
+    src: "/opt/apache-cassandra-{{ cass_version }}" 
+    state: link
+  when: ansible_os_family != "Debian" or ansible_os_family != "RedHat"  

@@ -1,0 +1,16 @@
+---
+
+# Java
+- name: Ensure java is present
+  apt: 
+    name: "openjdk-8-jre-headless" 
+    state: installed  
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Ensure java is present
+  yum: 
+    name: "java-1.8.0-openjdk" 
+    state: installed 
+    update_cache: yes
+  when: ansible_os_family == "RedHat"

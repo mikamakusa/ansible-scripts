@@ -1,0 +1,24 @@
+---
+
+## Cassandra - Debian like
+- name: Add Cassandra Repo-key
+  apt_key: 
+    state: present  
+    url: https://www.apache.org/dist/cassandra/KEYS
+  when: ansible_os_family == "Debian"
+
+- name: Add Cassandra Repository
+  apt_repository: 
+    filename: cassandra
+    repo: "deb http://www.apache.org/dist/cassandra/debian {{ cass_version }} main" 
+    state: present  
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Install Cassandra
+  apt: 
+    name: cassandra
+    state: installed
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+  notify: Start Cassandra

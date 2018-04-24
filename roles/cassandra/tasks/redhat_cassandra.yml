@@ -1,0 +1,22 @@
+---
+
+## Cassandra - RedHat Like
+- name: Add Cassandra Repository
+  yum_repository:
+    name: cassandra
+    description: Cassandra repository
+    baseurl: https://www.apache.org/dist/cassandra/redhat/{{ cass_version }}/
+    gpgcheck: yes
+    gpgkey: https://www.apache.org/dist/cassandra/KEYS
+    repo_gpgcheck: yes
+    enabled: yes
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Install Cassandra
+  yum: 
+    name: cassandra 
+    state: installed
+    update_cache: yes
+  when: ansible_os_family == "RedHat"
+  notify: Start Cassandra
