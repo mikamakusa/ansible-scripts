@@ -1,5 +1,18 @@
 ---
 
+- name: Ensure Cassandra group is present
+  group:
+    name: cassandra
+    state: present
+    system: yes
+
+- name: Ensure Cassandra User is present
+  user:
+    name: cassandra
+    group: cassandra
+    state: present
+    system: yes
+
 - name: Install Java
   include_tasks: java.yml
 
@@ -14,3 +27,11 @@
 - name: Install Cassandra
   include_tasks: redhat_cassandra.yml
   when: ansible_os_family == "RedHat"
+
+- name: Test if Cassandra is up
+  wait_for:
+    host: 127.0.0.1
+    port: 9042
+
+- name: Check login with default user
+  command: "cqlsh --cqlversion=3.4.0 -e exit -u cassandra -p cassandra 127.0.0.1"
