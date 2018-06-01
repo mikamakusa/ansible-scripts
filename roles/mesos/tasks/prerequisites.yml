@@ -1,0 +1,65 @@
+---
+
+- name: Java Installation - Debian
+  sudo: yes
+  apt: 
+    force: yes
+    name: openjdk-8-jre-headless 
+    state: installed 
+    update_cache: yes 
+  when: ansible_os_family == "Debian"
+
+- name: Java Installation - Redhat
+  sudo: yes
+  yum: 
+    name: "{{ item }}"
+    state: installed 
+    update_cache: yes
+  when:  ansible_os_family == "RedHat"
+  with_items:
+    - java-1.8.0-openjdk 
+    - java-1.8.0-openjdk-devel
+
+- name: Install Prerequisites - Debian
+  sudo: yes
+  apt: force="yes" name="{{ item }}" state="installed"
+  with_items:
+    - tar 
+    - wget 
+    - git
+    - "@build-essential" 
+    - python-dev 
+    - python-virtualenv 
+    - libcurl4-nss-dev 
+    - libsasl2-dev 
+    - libsasl2-modules 
+    - maven 
+    - libapr1-dev 
+    - libsvn-dev 
+    - zlib1g-dev
+    - python-six 
+    - iputils-ping
+  when: ansible_os_family == "Debian"
+
+- name: Install Prerequisites - RedHat
+  sudo: yes
+  yum: name="{{ item }}"  state=installed  update_cache=yes  
+  with_items:
+    - tar 
+    - wget 
+    - git 
+    - epel-release 
+    - "@Development Tools" 
+    - apache-maven 
+    - python-devel 
+    - python-six 
+    - python-virtualenv 
+    - zlib-devel 
+    - libcurl-devel 
+    - openssl-devel 
+    - cyrus-sasl-devel 
+    - cyrus-sasl-md5 
+    - apr-devel 
+    - subversion-devel 
+    - apr-util-devel
+  when:  ansible_os_family == "Redhat"

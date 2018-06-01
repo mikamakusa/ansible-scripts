@@ -1,0 +1,9 @@
+---
+
+- name: Start Cluster
+  sudo: yes
+  vars:
+    version: 1.6.0
+  shell: "mesos-master.sh --ip=127.0.0.1 --work_dir=/var/lib/mesos" 
+    chdir: "/opt/mesos-{{ version }}/bin"
+  tags: master

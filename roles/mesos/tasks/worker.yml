@@ -1,0 +1,10 @@
+---
+
+- name: Start worker
+  sudo: yes
+  vars:
+    version: 1.6.0
+    master_ip:
+  shell: "mesos-agent.sh --ip={{ master_ip }}:5050 --work_dir=/var/lib/mesos" 
+    chdir: "/opt/mesos-{{ version }}/bin"
+  tags: worker

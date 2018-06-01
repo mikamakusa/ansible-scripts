@@ -1,0 +1,8 @@
+---
+
+- include_tasks: prerequisites.yml
+- include_tasks: install.yml
+- include_tasks: master.yml
+  tags: ['master']
+- include_tasks: worker.yml
+  tags: ['worker']

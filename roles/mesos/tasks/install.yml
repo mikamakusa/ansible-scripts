@@ -1,0 +1,41 @@
+---
+
+- name: Unarchive Mesos
+  sudo: yes
+  vars:
+    version: 1.6.0
+  unarchive: 
+    dest: /opt/
+    src: "http://www.apache.org/dist/mesos/{{ version }}/mesos-{{ version }}.tar.gz"
+    remote_src: yes
+
+- name: Create Build Directory
+  vars:
+    version: 1.6.0
+  sudo: yes
+  file: path="/opt/mesos-{{ version }}/build" state=directory
+
+- name: Build Mesos Binary - configure
+  vars:
+    version: 1.6.0
+  sudo: yes
+  shell: ../configure
+    chdir="/opt/mesos-{{ version }}/build" 
+
+- name: Build Mesos Binary - make
+  vars:
+    version: 1.6.0
+  sudo: yes
+  shell: make
+    chdir="/opt/mesos-{{ version }}/build" 
+
+- name: Build Mesos Binary - make check
+  vars:
+    version: 1.6.0
+  sudo: yes
+  shell: make check
+    chdir="/opt/mesos-{{ version }}/build" 
+
+- name: Ensure Mesos Workdir is present
+  sudo: yes
+  file: path="/var/lib/mesos"  state=directory
