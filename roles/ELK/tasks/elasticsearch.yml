@@ -1,0 +1,37 @@
+---
+
+- name: Java Installation - Debian
+  sudo: yes
+  apt: 
+    force: yes
+    name: openjdk-8-jre-headless 
+    state: installed 
+    update_cache: yes 
+  when: ansible_os_family == "Debian"
+
+- name: Java Installation - Redhat
+  sudo: yes
+  yum: 
+    name: "{{ item }}"
+    state: installed 
+    update_cache: yes
+  when:  ansible_os_family == "RedHat"
+  with_items:
+    - java-1.8.0-openjdk 
+    - java-1.8.0-openjdk-devel
+
+- name: ElasticSearch Installation - Debian
+  vars:
+    version: "6.2.4"
+  sudo: yes
+  apt: deb="https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ version }}.deb" state="installed"
+  when:  ansible_os_family == "Debian"
+  notify: Start Elasticsearch
+
+- name: ElasticSearch Installation - Redhat
+  vars:
+    version: "6.2.4"
+  sudo: yes
+  yum: name="https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ version }}.rpm" state=installed
+  when: ansible_os_family == "RedHat"
+  notify: Start Elasticsearch

@@ -1,0 +1,7 @@
+---
+
+- include_tasks: elasticsearch.yml
+
+- include_tasks: logstash.yml
+
+- include_tasks: kibana.yml

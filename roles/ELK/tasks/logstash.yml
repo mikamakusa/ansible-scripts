@@ -1,0 +1,17 @@
+---
+
+- name: Logstash Installation - Debian
+  sudo: yes
+  vars:
+    version: 6.2.4
+  apt: deb="https://artifacts.elastic.co/downloads/logstash/logstash-{{ version }}.deb" state="installed"
+  when: ansible_os_family == "Debian"
+  notify: Start Logstash
+
+- name: Logstash Installation - RedHat
+  sudo: yes
+  vars:
+    version: 6.2.4
+  yum: name="https://artifacts.elastic.co/downloads/logstash/logstash-{{ version }}.rpm" state="installed"
+  when: ansible_os_family == "RedHat"
+  notify: Start Logstash
