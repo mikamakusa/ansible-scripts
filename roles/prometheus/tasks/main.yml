@@ -1,0 +1,7 @@
+---
+
+- include_tasks: install.yml
+  tags: "prometheus_server"
+
+- include_tasks: extend.yml
+  tags: "prometheus_worker"

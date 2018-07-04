@@ -1,0 +1,41 @@
+---
+
+- name: "Create Group"
+  become: true
+  group:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "node-exporter"
+
+- name: "Create Users"
+  become: true
+  user:
+    createhome: false
+    groups: "{{ item.group }}"
+    name: "{{ item.user }}"
+    shell: "/bin/false"
+    state: present
+  with_items:
+    - {group: "node-exporter", user: "node-exporter"}
+
+- name: Install Node-Exporter
+  become: true
+  unarchive:
+    dest: "/usr/local/bin"
+    group: node-exporter
+    mode: 0755
+    owner: node-exporter
+    src: "{{ ne_url }}"
+    remote_src: true
+
+- name: "Create file service"
+  become: true
+  template:
+    backup: true
+    dest: "/lib/systemd/system/node_exporter.service"
+    force: true
+    group: "root"
+    owner: "root"
+    src: "node_exporter.service.j2"
+  notify: Node-Exporter Start

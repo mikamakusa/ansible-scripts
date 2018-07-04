@@ -1,0 +1,26 @@
+---
+# defaults file for prometheus
+
+url: "https://github.com/{{ service }}/{{ service }}/releases/download/v2.3.1/{{ archive }}"
+version: 2.3.1
+type: "tar.gz"
+archive: "prometheus-2.3.1.linux-amd64.{{ type }}"
+directory: "prometheus-2.3.1.linux-amd64"
+service: "prometheus"
+
+users:
+  - prometheus
+  - node-exporter
+
+groups: prometheus
+
+drectory: "/opt/prometheus-{{ version }}-linux-amd64"
+
+path:
+  - "/etc/prometheus"
+  - "/var/lib/prometheus"
+
+ne_url: "https://github.com/prometheus/node_exporter/releases/download/v0.16.0/node_exporter-0.16.0.linux-amd64.tar.gz"
+ne_version: "0.16.0"
+ne_archive: "node_exporter-0.16.0.linux-amd64"
+ne_type: "tar.gz"
