@@ -1,0 +1,51 @@
+---
+
+- name: "Install compilation prerequisites"
+  become: true
+  apt:
+    name: "build-essential"
+    state: present
+  ignore_errors: true
+
+- name: "Get PGPool archive"
+  become: true
+  unarchive: 
+    dest: "/opt/"
+    src: "http://www.pgpool.net/download.php?f={{ pgpool_package }}"
+  ignore_errors: true
+
+- name: "PGPOOL - Compile | Configure"
+  become: true
+  shell: "./configure" chdir: "/opt/{{ pgpool_package }}"
+
+- name: "PGPOOL - Compile"
+  make:
+    chdir: "/opt/{{ pgpool_package }}"
+    target: "{{ item | default(omit)}}"
+  with_items:
+    - install
+
+- name: "PGPOOL Recovery - Compile"
+  become: true
+  make:
+    chdir: "/opt/{{ pgpool_package }}/sql/pgpool-recovery/"
+    target: "{{ item | default(omit) }}"
+  with_items:
+    - install
+
+- name: "PGPOOL Recovery"
+  become: true
+  shell: "psql -f pgpool-recovery--1.1.sql template1" chdir: "/opt/{{ pgpool_package }}/sql/pgpool-recovery/"
+
+- name: "PGPOOL Regclass - Compile"
+  become: true
+  make:
+    chdir: "/opt/{{ pgpool_package }}/sql/pgpool-regclass/"
+    target: "{{ item | default(omit) }}"
+  with_items:
+    - install
+
+- name: "PGPOOL Regclass"
+  become: true
+  shell: "psql -f pgpool-regclass--1.0.sql template1" chdir: "/opt/{{ pgpool_package }}/sql/pgpool-regclass/"
+  

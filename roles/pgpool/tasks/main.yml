@@ -1,0 +1,101 @@
+---
+# tasks file for pgpool
+
+- name: "Check if extra_vars file is present"
+  become: true
+  local_action:
+    module: stat
+    path: "{{ extra_vars }}"
+  register: extra_vars
+
+- name: "Create extra_vars file"
+  become: true
+  local_action:
+    module: file
+    path: "{{ extra_vars }}"
+    state: touch
+  when: extra_var.stat.exists == False
+
+- name: "Check if PGPOOL is already installed"
+  become: true
+  stat: 
+    path: "{{ config_directory }}"
+  register: pgpool_path
+
+- name: "Install PGPOOL"
+  include: redhat.yml
+  when: ansible_os_family == "RedHat" and pgpool_path.stat.exists == False
+
+- name: "Install PGPOOL"
+  include: debian.yml
+  when: ansible_os_family == "Debian" and pgpool_path.stat.exists == False
+
+- name: "Add Hosts to Authenticate"
+  become: true
+  lineinfile:
+    backup: true
+    dest: "{{ config_directory }}/pool_hba.conf"
+    line: "host {{ database | default(all) }} {{ user | default(all) }} {{ host | default(0.0.0.0/0) }} md5"
+    state: present
+
+- name: "Copy PGPOOL configuration"
+  become: true
+  template:
+    backup: true
+    dest: "{{ config_directory }}/pgpool.conf"
+    src: "pgpool.conf.j2"
+  when: pgpool_path.stat.exists == False
+
+- name: "Check Latest Backend number"
+  become: true
+  shell: "cat {{ config_directory }}/pgpool.conf | grep 'backend_hostname[0-9]' | wc -l"
+  register: backend_number
+  when: pg_action == "add_host"
+
+- name: "Add Backend"
+  become: true
+  lineinfile:
+    backup: true
+    dest: "{{ config_directory }}/pgpool.conf"
+    line: "{{ item }}"
+    state: present
+  with_items:
+    - "backend_hostname{{ backend_number.stdout }} = {{ ip_address }}"
+    - "backend_port{{ backend_number.stdout }} = 5432"
+    - "backend_weight{{ backend_number.stdout }} = 1"
+    - "backend_data_directory{{ backend_number.stdout }} = '/var/lib/pgsql/data'" 
+    - "backend_flag{{ backend_number.stdout }} = ALLOW_TO_FAILOVER"
+  when: pg_action == "add_host"
+  notify: Restart PGPool
+
+- name: "Add {{ user | default(postgres) }} password to PGPOOL password file"
+  become: true
+  shell: "pg_md5 -m -u {{ user | default(postgres) }} {{ password | default(omit) }}"
+
+- name: "Launch PGPOOL"
+  become: true
+  systemd:
+    name: pgpool
+    state: started
+
+- name: "Register IP Address"
+  become: true
+  shell: "hostname -I | awk -F \" \" '{print $1}'"
+  register: pgpool_ip
+
+- name: "Create PGPOOL IP Address dictionnary"
+  become: true
+  local_action:
+    module: lineinfile
+    dest: "{{ extra_vars }}"
+    line: "PGPOOL_IP:"
+    state: present
+  run_once: true
+
+- name: "Inject PGPOOL_IP in dictionnary"
+  become: true
+  local_action:
+    module: lineinfile
+    dest: "{{ extra_vars }}"
+    line: "  - {{ pgpool_ip.stdout }}"
+    state: present

@@ -1,0 +1,19 @@
+---
+
+- name: "Add latest PgPool repository"
+  become: true
+  yum:
+    name: "http://www.pgpool.net/yum/rpms/3.7/redhat/rhel-7-x86_64/pgpool-II-release-3.7-1.noarch.rpm"
+    state: present
+  ignore_errors: true
+
+- name: "Install PgPool extensions"
+  become: true
+  vars:
+    postgresql_version: 10
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "pgpool-II-pg{{ postgresql_version }}"
+    - "pgpool-II-pg{{ postgresql_version }}-extensions"

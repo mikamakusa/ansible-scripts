@@ -1,0 +1,22 @@
+---
+# handlers file for pgpool
+
+- name: Start PGPool
+  become: true
+  systemd:
+    name: pgpool
+    state: started
+    enabled: true
+
+- name: Stop PGPool
+  become: true
+  systemd:
+    name: pgpool
+    state: stopped
+
+- name: Restart PGPool
+  become: true
+  systemd:
+    name: pgpool
+    state: restarted
+    daemon_reload: true

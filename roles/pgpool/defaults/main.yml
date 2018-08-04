@@ -1,0 +1,4 @@
+---
+# defaults file for pgpool
+
+config_directory: "/etc/pgpool-II/"
