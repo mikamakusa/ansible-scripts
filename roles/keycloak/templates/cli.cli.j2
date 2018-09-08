@@ -1,0 +1,28 @@
+embed-server --server-config={{ file }} --std-out=echo
+batch
+/subsystem=datasources/data-source=KeycloakDS/:remove
+
+{% if datasource_type is defined %}
+{% if datasource_type is postgresql %}
+module add --name=org.postgres --resources=/tmp/{{ datasource_type }}-*.jar --dependencies=javax.api,javax.transaction.api
+/subsystem=datasources/jdbc-driver=postgres:add(driver-name="postgres",driver-module-name="org.postgres",driver-class-name=org.postgresql.Driver)
+{% elif datasource_type %}
+module add --name=com.mysql --resources=/tmp/{{ datasource_type}}-*.jar --dependencies=javax.api,javax.transaction.api
+/subsystem=datasources/jdbc-driver=postgres:add(driver-name="postgres",driver-module-name="org.postgres",driver-class-name=org.postgresql.Driver)
+{% endif %}
+{% endif %}
+
+{% if datasource_location is defined %}
+{% if MASTER_POOL_IP is defined %}
+/subsystem=datasources/data-source=KeycloakDS/:add(connection-url=jdbc:postgresql://{{ MASTER_POOL_IP }}:5432/keycloak,driver-name=postgres,jndi-name=java:jboss/datasources/KeycloakDS,password={{PGSQL_USER_PASS}},user-name={{PGSQL_USER_LOGIN}})
+{% else %}
+{% for item in PGPOOL_IP %}
+/subsystem=datasources/data-source=KeycloakDS/:add(connection-url=jdbc:postgresql://{{ item }}:5432/keycloak,driver-name=postgres,jndi-name=java:jboss/datasources/KeycloakDS,password={{PGSQL_USER_PASS}},user-name={{PGSQL_USER_LOGIN}})	
+{% endfor %}	
+{% endif %}
+{% else %}
+/subsystem=datasources/data-source=KeycloakDS/:add(connection-url=jdbc:postgresql://localhost:5432/keycloak,driver-name=postgres,jndi-name=java:jboss/datasources/KeycloakDS,password={{PGSQL_USER_PASS}},user-name={{PGSQL_USER_LOGIN}})	
+{% endif %}
+
+
+run-batch

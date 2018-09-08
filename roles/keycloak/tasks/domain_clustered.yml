@@ -1,0 +1,50 @@
+---
+
+- name: "Get {{ config_type }} configuration file"
+  become: true
+  template: 
+    dest: "{{ path }}/{{ pkg }}/domain/configuration/{{ config_files }}"
+    group: "{{ user }}"
+    mode: 0755
+    owner: "{{ user }}"
+    src: "{{ item }}.j2"
+  with_items:
+    - "{{ config_files }}"
+
+- name: "Create Working Directories for Keycloack Servers"
+  become:
+  file:
+    group: "{{ user }}"
+    mode: 0755
+    owner: "{{ user }}"
+    path: "{{ path }}/{{ pkg }}/domain/configuration/{{ item }}"
+    state: directory
+  with_items:
+    - "server-one"
+    - "server-two"
+
+- name: "Create Service file for Keycloack - Master"
+  become: true
+  vars:
+    script: "{{ path }}/{{ pkg }}/bin/domain.sh --host-config=host-master.xml -b {{ hostvars['keycloak'].ansible_all_ipv4_addresses[1]"
+  template:
+    dest: "/lib/systemd/system/keycloack.service"
+    group: "{{ owner }}"
+    mode: 0777
+    owner: "{{ owner }}"
+    src: keycloak.service.j2
+  notify: Start Keycloack
+  when: ansible_hostname == "keycloack1"
+
+- name: "Create Service file for Keycloack - Slave"
+  become: true
+  vars:
+    script: "{{ path }}/{{ pkg }}/bin/domain.sh --host-config=host-slave.xml -b {{ hostvars['keycloak'].ansible_all_ipv4_addresses[1]"
+  template:
+    dest: "/lib/systemd/system/keycloack.service"
+    group: "{{ owner }}"
+    mode: 0777
+    owner: "{{ owner }}"
+    src: keycloak.service.j2
+  notify: Start Keycloack
+  when: ansible_hostname == "keycloack2"

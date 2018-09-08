@@ -1,0 +1,11 @@
+server {
+    listen {{ ip_address }}:{{ keycloack_port }}/;
+    server_name {{ ip_address }};
+    location / {
+        root {{ root_folder }};
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Server $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_pass http://{{ ip_address }}:{{ keycloack_port }};
+    }
+}

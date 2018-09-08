@@ -1,0 +1,14 @@
+[Unit]
+Description=keycloak
+After=network-online.target
+
+[Service]
+Type=idle
+User=root
+Group=root
+ExecStart={{ script }}
+TimeOutStartSec=600
+TimeStopSec=600
+
+[Install]
+WantedBy=multi-user.target

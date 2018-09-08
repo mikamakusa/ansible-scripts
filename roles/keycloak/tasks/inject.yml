@@ -1,0 +1,26 @@
+---
+
+- name: "Copy Keycloak Config"
+  become: true
+  template: 
+    dest: "{{ keycloak_config_file }}.sql.j2" 
+    src: "/tmp/{{ keycloak_config_file }}.sql"
+
+- name: "Inject Keycloak Configuration"
+  become: true
+  shell: "sudo su - postgres -- psql -h {{ item[0] }} -p 5432 -W {{ PGSQL_USER_PASS }} -U {{ PGSQL_USER_LOGIN }} keycloak < /tmp/{{ keycloak_config_file }}.sql"
+  when: datasource_type == "postgresql" and datasource_location == "external"
+  with_items:
+    - MASTER_POOL_IP
+
+- name: "Inject Keycloak Configuration"
+  become: true
+  shell: "sudo su - postgres -- psql -h {{ item[0] }} -p 5432 -W {{ PGSQL_USER_PASS }} -U {{ PGSQL_USER_LOGIN }} keycloak < /tmp/{{ keycloak_config_file }}.sql"
+  when: datasource_type == "postgresql" and datasource_location == "external"
+  with_items:
+    - PGPOOL_IP
+
+- name: "Inject Keycloak Configuration"
+  become: true
+  shell: "mysqldump --host {{}} --port {{}} --user {{}} --password {{}} --databases {{}} "
+  when: datasource_type == "mysql" and datasource_location == "external"

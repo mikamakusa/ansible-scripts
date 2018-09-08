@@ -1,0 +1,21 @@
+---
+
+- name: "Install {{ pkg }}-{{ version }}"
+  become: true
+  apt: 
+    force: true
+    name: "{{ pkg }}-{{ version }}-jre"
+    state: present
+    update_cache: true
+    upgrade: true
+  tags: ['jdk']
+  when: ansible_os_family == "Debian"
+
+- name: "Install Openjdk-{{ version }}"
+  become: true
+  yum:
+    name: "java-1.{{ version }}.0-{{ pkg }}"
+    state: present
+    update_cache: true
+  tags: ['jdk']
+  when: ansible_os_family == "RedHat"

@@ -1,0 +1,106 @@
+---
+# tasks file for keycloak
+
+- name: "Install JDK"
+  vars:
+    version: "8"
+    pkg: "openjdk"
+  include: jdk.yml
+  tags: ['jdk']
+
+- name: "Group Creation"
+  become: true
+  group: name="{{ group }}" state=present
+
+- name: "User Creation"
+  become: true
+  user: create_home=false expires=false groups="{{ group }}" name="{{ user }}" state=present
+
+- name: "Check if Keycloak directory is present"
+  become: true
+  stat:
+    path: "{{ path }}/{{ directory }}"
+  register: keycloak_path
+
+- name: "Check if keycloak symlink is present"
+  become: true
+  stat:
+    path: "{{ path }}/{{ pkg }}"
+  register: keycloak_dir
+
+- name: "Extract Keycloak Archive"
+  become: true
+  unarchive:
+    src: "{{ url }}"
+    dest: "{{ path }}"
+    group: "{{ group | default(root) }}"
+    owner: "{{ user | default(root) }}"
+    remote_src: true
+  when: keycloak_path.stat.exists == False
+
+- name: "Create Keycloak Symlink"
+  become: true
+  file:
+    src: "{{ path }}/{{ directory }}"
+    path: "{{ path }}/{{ pkg }}"
+    state: link
+  when: keycloak_dir.stat.exists == False
+
+- name: "Get JDBC driver for {{ datasource_type }}"
+  become: true
+  get_url:
+    dest: "/tmp/"
+    url: "{{ item.[datasource_type] }}"
+  with_items:
+    - "{{ datasource }}"
+  when: keycloak_dir.stat.exists == False and datasource_type is defined
+
+- name: "Unarchive Mysql datasource driver"
+  become: true
+  unarchive:
+    src: "/tmp/{{ item.[datasource_type].split("/")[-1] }}"
+    dest: "/tmp/"
+    group: "root"
+    owner: "root"
+  with_items:
+    - "{{ datasource }}"
+  when: datasource_type == "mysql"
+
+- name: "Keycloack Configuration"
+  include: standalone.yml
+  when: config_type == "standalone" and keycloak_dir.stat.exists == False
+
+- name: "Keycloack Configuration"
+  include: standalone_clustered.yml
+  when: config_type == "standalone_clustered" and keycloak_dir.stat.exists == False
+
+- name: "Keycloack Configuration"
+  include: domain_clustered.yml
+  when: config_type == "domain_clustered" and keycloak_dir.stat.exists == False
+
+- name: "Install PostgreSQL"
+  include: postgresql.yml
+  tags: ['postgres_client', 'postgres_server']
+  when: datasource_type == "postgresql"
+
+- name: "Install Mysql"
+  include: mysql.yml
+  tags: ['mysql_client', 'mysql_server']
+  when: datasource_type == "mysql"
+
+- name: "Inject Configuration"
+  include: inject.yml
+  when: keycloak_config_file is defined
+
+- name: "Start Keycloak"
+  become: true
+  systemd:
+    name: keycloak
+    state: started
+    enabled: true
+  when: config_type != "domain_clustered"
+
+- name: "Create User for keycloak"
+  become: true
+  shell: "{{ path }}/keycloak/bin/add-user-keycloak -r master -u {{ keycloak_admin }} -p {{ keycloak_password }}"
+  when: keycloak_config_file is not defined

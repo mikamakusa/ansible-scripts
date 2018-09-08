@@ -1,0 +1,27 @@
+---
+# defaults file for keycloak
+
+pkg: keycloak
+version: 4.1.0
+directory: "{{ pkg }}-{{ version }}.Final"
+url: https://downloads.jboss.org/{{ pkg }}/{{ version }}.Final/{{ directory }}.tar.gz
+
+datasource: 
+  postgresql: "https://jdbc.postgresql.org/download/postgresql-9.3-1103.jdbc3.jar"
+  mysql: "https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.42.zip"
+
+config_type: #standalone/standalone_clustered/domain_clustered
+
+database_config:
+  encoding: "UTF-8"
+  collation: "en_US.UTF-8"
+  type: "en_US.UTF-8"
+  user: "keycloack"
+  password: "keycloack"  
+  roles:
+    - "SUPERUSER"
+    - "CREATEROLE"
+    - "CREATEDB"
+    - "INHERIT"
+    - "LOGIN"
+    - "REPLICATION"

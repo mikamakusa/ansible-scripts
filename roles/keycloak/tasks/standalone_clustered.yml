@@ -1,0 +1,23 @@
+---
+
+- name: "Create cli file"
+  become: true
+  vars:
+    file: "standalone-ha.xml"
+  template: dest="/tmp/cli.cli" src="cli.cli.j2"
+  when: datasource_type is defined
+
+- name: "Generate Config file"
+  become: true
+  shell: "/opt/keycloak/bin/jboss-cli.sh --file=/tmp/cli.cli"
+  when: datasource_type is defined
+
+- name: "Create Service file for Keycloack"
+  become: true
+  vars:
+    script: "{{ path }}/keycloak/bin/standalone.sh --server-config=standalone-ha.xml -b 0.0.0.0"
+  template:
+    dest: "/lib/systemd/system/keycloak.service"
+    group: "{{ owner }}"
+    owner: "{{ owner }}"
+    src: keycloak.service.j2

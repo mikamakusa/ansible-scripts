@@ -1,0 +1,124 @@
+---
+
+- name: "Install PostgreSQL Client"
+  become: true
+  apt: 
+    name: "{{ item }}"
+    state: present
+    update_cache: true
+  with_items:
+    - "postgresql-client"
+  ignore_errors: true
+  tags: ['postgres_client']
+  when: ansible_os_family == "Debian"
+
+- name: "Install PostgreSQL Server"
+  become: true
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: true
+  with_items:
+    - postgresql
+  ignore_errors: true
+  tags: ['postgresql_server']
+  when: ansible_os_family == "Debian" and datasource_location == "internal"
+
+- name: "Install PostgreSQL Server"
+  become: true
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - postgresql.x86_64
+    - postgresql-server.x86_64
+    - postgresql-contrib.x86_64
+  tags: ['postgresql_server']
+  when: ansible_os_family == "RedHat" and datasource_location == "internal"
+
+- name: "Install PostgreSQL Client"
+  become: true
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - postgresql-client
+  tags: ['postgres_client']
+  when: ansible_os_family == "RedHat"
+
+- name: "Initiate Database Engine"
+  become: true
+  shell: "sudo su - postgres -c \"initdb -D /var/lib/pgsql/data/\""
+  ignore_errors: true
+
+- name: "Set Permissions to access to databases"
+  become: true
+  lineinfile: 
+    dest: "{{ postgre_directory }}/pg_hba.conf"
+    line: "{{ item }}"
+    state: present
+  ignore_errors: true
+  with_items:
+    - "host    replication     all             0.0.0.0/0          trust"
+    - "host    all             all             0.0.0.0/0          md5"
+
+- name: "Copy PostgreSQL Configuration"
+  become: true
+  template:
+    backup: true
+    src: "postgresql.conf.j2"
+    dest: "{{ postgre_directory }}/postgresql.conf"
+  ignore_errors: true
+
+- name: "Start PostgreSQL Server"
+  become: true
+  systemd:
+    name: postgresql
+    state: started
+    enabled: true
+
+- name: "Get Python-pip Package"
+  become: true
+  get_url: dest="/tmp/get-pip.py" url="https://bootstrap.pypa.io/get-pip.py"
+  #when: pip_install is failed
+
+- name: "Install Python-pip Package"
+  become: true
+  shell: "python /tmp/get-pip.py"
+  #when: pip_install is failed
+
+- name: "Ensure {{ pip_package }} python module is present"
+  vars:
+    ldap_user: "mickael_dangleterre"
+    ldap_pass: "8+Rixo4Q+GtUGx+"
+    proxy_address: "10.49.64.5"
+    proxy_port: "8080"
+  become: true
+  pip: 
+#    extra_args: "--proxy http://{{ ldap_user }}:{{ ldap_pass }}:{{ proxy_address }}:{{ proxy_port }}"
+    name: "{{ pip_package }}"
+    state: present
+
+- name: "Create {{ pg_db_name }} database"
+  become: true
+  become_user: "{{ user |default(postgres) }}"
+  postgresql_db:
+    encoding: "{{ database_config.encoding | default() }}"
+    lc_collate: "{{ database_config.collation | default() }}"
+    lc_ctype: "{{ database_config.type | default() }}"
+    name: "{{ pg_db_name | default(keycloak) }}"
+    state: present
+
+- name: "Create {{ pg_user | default(keycloak) }} user"
+  become: true
+  become_user: "{{ user | default(postgres) }}"
+  postgresql_user: 
+    encrypted: true
+    db: "{{ pg_db_name | default(keycloak) }}"
+    name: "{{ database_config.user | default(keycloak) }}"
+    password: "{{ database_config.password | default(keycloak) }}"
+    priv: ALL
+    role_attr_flags: "{{ item }}"
+    state: present
+  with_items:
+    - "{{ database_config.roles }}"
