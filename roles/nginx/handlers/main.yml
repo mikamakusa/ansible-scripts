@@ -1,0 +1,22 @@
+---
+# handlers file for nginx
+
+- name: "Start nginx"
+  become: true
+  systemd:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: "Stop nginx"
+  become: true
+  systemd:
+    name: nginx
+    state: stopped
+
+- name: "Restart nginx"
+  become: true
+  systemd:
+    name: nginx
+    state: restarted
+    daemon_reload: true

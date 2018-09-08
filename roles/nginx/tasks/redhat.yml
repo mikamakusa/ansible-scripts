@@ -1,0 +1,14 @@
+---
+
+- name: "Install Epel Repository"
+  become: true
+  yum:
+    name: "epel-release"
+    state: present
+
+- name: "Install Nginx"
+  become: true
+  yum:
+    name: "nginx"
+    state: present
+  notify: Start nginx

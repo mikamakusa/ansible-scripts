@@ -1,0 +1,41 @@
+---
+# tasks file for nginx
+
+- name: "Nginx Installation"
+  include: "debian.yml"
+  when: ansible_os_family == "Debian"
+
+- name: "Nginx Installation"
+  include: "redhat.yml"
+  when: ansible_os_family == "RedHat"
+
+- name: "Copy nginx configuration file"
+  become: true
+  templates:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    backup: true
+
+- name: "Create site configuration"
+  become: true
+  copy:
+    content: |
+        upstream {{ upstream }} {
+                {% for item in IP %}
+                server {{ item }};
+                {% endfor %}
+        }
+
+        server {
+                {% for item in listen %}
+                listen {{ item }};
+                {% endfor %}
+                server_name     {{ server_name }};
+                location / {
+                        proxy_pass http://{{ upstream }};
+                        proxy_set_header Host   $host;
+                        proxy_set_header X-Real-IP      $remote_addr;
+                }
+        }
+    dest: "/etc/nginx/{{ upstream }}.conf"
+  notify: Restart nginx

@@ -1,0 +1,8 @@
+---
+
+- name: "Install Nginx"
+  become: true
+  apt:
+    name: nginx
+    state: present
+  notify: Start nginx
