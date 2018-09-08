@@ -54,11 +54,11 @@
 - name: Create zookeeper configuration file
   copy: 
     content: |
-		tickTime = 2000
-		dataDir = /opt/data
-		clientPort = 2181
-		initLimit = 5
-		syncLimit = 2 
+      		tickTime = 2000
+      		dataDir = /opt/data
+      		clientPort = 2181
+      		initLimit = 5
+      		syncLimit = 2 
     dest: /opt/zookeeper/conf/zoo.cfg
   notify: start zookeeper
 
