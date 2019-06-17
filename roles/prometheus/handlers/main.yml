@@ -9,6 +9,14 @@
     enabled: true
     daemon_reload: true
 
+- name: Start AlertManager
+  become: true
+  systemd:
+    name: alertmanager
+    state: started
+    enabled: true
+    daemon_reload: true
+
 - name: Stop prometheus
   become: true
   systemd:

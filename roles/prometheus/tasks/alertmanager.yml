@@ -1,0 +1,48 @@
+---
+
+- name: "Create Group"
+  become: true
+  group:
+    name: "{{ alertmanager.owner }}"
+    state: present
+
+- name: "Create Users"
+  become: true
+  user:
+    createhome: false
+    groups: "{{ alertmanager.group }}"
+    name: "{{ alertmanager.user }}"
+    shell: "/bin/false"
+    state: present
+
+- name: Download Alertmanager
+  become: true
+  unarchive:
+    dest: /opt/
+    group: root
+    owner: root
+    src: "/opt/{{ alertmanager.url }}{{ alertmanager.version }}/{{ alertmanager.package }}"
+    remote_src: true
+
+- name: Create Symbolic Link for Alertmanager
+  become: true
+  file:
+    src: "/opt/{{ alertmanager.package | basename | regex_replace('.tar.gz','')}}"
+    dest: "/opt/alertmanager"
+    owner: "{{ alertmanager.owner }}"
+    group: "{{ alertmanager.group }}"
+    state: link
+
+- name: Configure Alertmanager
+  become: true
+  template:
+    backup: true
+    dest: "{{ item.dest }}/{{ item.src | basename | regex_replace('.j2', '')}}"
+    src: "{{ item.src }}"
+    force: true
+    group: "{{ alertmanager.group }}"
+    owner: "{{ alertmanager.owner }}"
+  with_items:
+    - {src: alertmanager.service.j2, dest: /lib/systemd/system }
+    - {src: alertmanager.yml.j2, dest: /opt/{{ alertmanager.package | basename | regex_replace('.tar.gz', '') }} }
+  notify: Start AlertManager

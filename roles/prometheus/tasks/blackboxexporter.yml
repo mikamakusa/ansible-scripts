@@ -1,0 +1,48 @@
+---
+
+- name: "Create Group"
+  become: true
+  group:
+    name: "{{ blackboxexporter.owner }}"
+    state: present
+
+- name: "Create Users"
+  become: true
+  user:
+    createhome: false
+    groups: "{{ blackboxexporter.group }}"
+    name: "{{ blackboxexporter.user }}"
+    shell: "/bin/false"
+    state: present
+
+- name: Download blackboxexporter
+  become: true
+  unarchive:
+    dest: /opt/
+    group: root
+    owner: root
+    src: "/opt/{{ blackboxexporter.url }}{{ blackboxexporter.version }}/{{ blackboxexporter.package }}"
+    remote_src: true
+
+- name: Create Symbolic Link for blackboxexporter
+  become: true
+  file:
+    src: "/opt/{{ blackboxexporter.package | basename | regex_replace('.tar.gz','')}}"
+    dest: "/opt/alertmanager"
+    owner: "{{ blackboxexporter.owner }}"
+    group: "{{ blackboxexporter.group }}"
+    state: link
+
+- name: Configure blackboxexporter
+  become: true
+  template:
+    backup: true
+    dest: "{{ item.dest }}/{{ item.src | basename | regex_replace('.j2', '')}}"
+    src: "{{ item.src }}"
+    force: true
+    group: "{{ blackboxexporter.group }}"
+    owner: "{{ blackboxexporter.owner }}"
+  with_items:
+    - {src: blackboxexporter.service.j2, dest: /lib/systemd/system }
+    - {src: blackboxexporter.yml.j2, dest: /opt/{{ blackboxexporter.package | basename | regex_replace('.tar.gz', '') }} }
+  notify: Start AlertManager

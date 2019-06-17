@@ -1,6 +1,23 @@
 ---
 # defaults file for prometheus
 
+prometheus:
+  url: "http://github.com/prometheus/prometheus/releases/download/"
+  version: "2.10.0"
+  package: "prometheus-2.10.0.darwin-amd64.tar.gz"
+
+alertmanager:
+  url: "https://github.com/prometheus/alertmanager/releases/download/"
+  version: "v0.17.0"
+  package: "alertmanager-0.17.0.linux-amd64.tar.gz"
+  owner: "alertmanager"
+  group: "alertmanager"
+
+blackboxexporter:
+  url: "https://github.com/prometheus/blackbox_exporter/releases/download/"
+  version: "v0.14.0"
+  package: "blackbox_exporter-0.14.0.linux-amd64.tar.gz"
+
 url: "https://github.com/{{ service }}/{{ service }}/releases/download/v2.3.1/{{ archive }}"
 version: 2.3.1
 type: "tar.gz"
@@ -8,17 +25,10 @@ archive: "prometheus-2.3.1.linux-amd64.{{ type }}"
 directory: "prometheus-2.3.1.linux-amd64"
 service: "prometheus"
 
-users:
-  - prometheus
-  - node-exporter
-
+users: prometheus
 groups: prometheus
 
 drectory: "/opt/prometheus-{{ version }}-linux-amd64"
-
-path:
-  - "/etc/prometheus"
-  - "/var/lib/prometheus"
 
 ne_url: "https://github.com/prometheus/node_exporter/releases/download/v0.16.0/node_exporter-0.16.0.linux-amd64.tar.gz"
 ne_version: "0.16.0"

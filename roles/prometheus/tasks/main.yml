@@ -1,7 +1,9 @@
 ---
 
 - include_tasks: install.yml
-  tags: "prometheus_server"
 
-- include_tasks: extend.yml
-  tags: "prometheus_worker"
+- include_tasks: alertmanager.yml
+
+- include_tasks: blackboxexporter.yml
+
+- include_tasks: node_exporter.yml

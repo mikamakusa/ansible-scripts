@@ -33,9 +33,11 @@
   become: true
   template:
     backup: true
-    dest: "/lib/systemd/system/node_exporter.service"
+    dest: "/lib/systemd/system/{{ item | basename | regex_replace('.j2','')}}"
     force: true
     group: "root"
     owner: "root"
-    src: "node_exporter.service.j2"
+    src: "{{ item }}"
   notify: Node-Exporter Start
+  with_items:
+    - node_exporter.service.j2

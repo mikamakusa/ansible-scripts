@@ -39,55 +39,28 @@
     dest: /opt/
     group: root
     owner: root
-    src: "{{ url }}"
+    src: "/opt/{{ prometheus.url }}{{ prometheus.version }}/{{ prometheus.package }}"
     remote_src: true
 
-- name: Create Directories
+- name: Create Symbolic Link for Prometheus Directory
   become: true
   file:
-    force: true
-    group: "{{ item.group }}"
-    owner: "{{ item.owner }}"
-    mode: "{{ item.mode }}"
-    path: "{{ item.path }}"
-    state: directory
-  with_items:
-    - {path: "/etc/prometheus/consoles", group: "prometheus", owner: "prometheus", mode: "0755"}
-    - {path: "/etc/prometheus/consoles_librairies", group: "prometheus", owner: "prometheus", mode: "0755"}
-
-- name: "Move files"
-  become: true
-  copy:
-    dest: "{{ item.dest }}"
-    force: true
-    group: "{{ item.group }}"
-    mode: "{{ item.mode }}"
-    owner: "{{ item.owner }}"
-    remote_src: true
-    src: "{{ item.src }}"
-  with_items:
-    - {src: "/opt/prometheus-2.3.1.linux-amd64/prometheus", dest: "/usr/local/bin", group: "prometheus", owner: "prometheus", mode: "0777"}
-    - {src: "/opt/prometheus-2.3.1.linux-amd64/promtool", dest: "/usr/local/bin", group: "prometheus", owner: "prometheus", mode: "0777"}
-    - {src: "/opt/prometheus-2.3.1.linux-amd64/console_libraries/menu.lib", dest: "/etc/prometheus/console_librairies", group: "prometheus", owner: "prometheus", mode: "0755"}
-    - {src: "/opt/prometheus-2.3.1.linux-amd64/console_libraries/prom.lib", dest: "/etc/prometheus/console_librairies", group: "prometheus", owner: "prometheus", mode: "0755"}
-    - {src: "/opt/prometheus-2.3.1.linux-amd64/consoles/index.html.example", dest: "/etc/prometheus/consoles", group: "prometheus", owner: "prometheus", mode: "0755"}
-    - {src: "/opt/prometheus-2.3.1.linux-amd64/consoles/node-cpu.html", dest: "/etc/prometheus/consoles", group: "prometheus", owner: "prometheus", mode: "0755"}
-    - {src: "/opt/prometheus-2.3.1.linux-amd64/consoles/node-disk.html", dest: "/etc/prometheus/consoles", group: "prometheus", owner: "prometheus", mode: "0755"}
-    - {src: "/opt/prometheus-2.3.1.linux-amd64/consoles/node.html", dest: "/etc/prometheus/consoles", group: "prometheus", owner: "prometheus", mode: "0755"}
-    - {src: "/opt/prometheus-2.3.1.linux-amd64/consoles/node-overview.html", dest: "/etc/prometheus/consoles", group: "prometheus", owner: "prometheus", mode: "0755"}
-    - {src: "/opt/prometheus-2.3.1.linux-amd64/consoles/prometheus.html", dest: "/etc/prometheus/consoles", group: "prometheus", owner: "prometheus", mode: "0755"}
-    - {src: "/opt/prometheus-2.3.1.linux-amd64/consoles/prometheus-overview.html", dest: "/etc/prometheus/consoles", group: "prometheus", owner: "prometheus", mode: "0755"}
+    src: "{{ prometheus.package | basename | regex_replace('.tar.gz','') }}"
+    dest: "/opt/prometheus"
+    owner: "{{ users }}"
+    group: "{{ groups }}"
+    state: link
 
 - name: Configure Prometheus
   become: true
   template:
     backup: true
-    dest: "{{ item.dest }}"
+    dest: "{{ item.dest }}/{{ item.src | basename | regex_replace('.j2','') }}"
     force: true
     group: "{{ item.group }}"
     owner: "{{ item.owner }}"
     src: "{{ item.src }}"
   with_items:
-    - {src: "prometheus.yml.j2", group: "prometheus", owner: "prometheus", dest: "/etc/prometheus/prometheus.yml"}
-    - {src: "prometheus.service.j2", group: "root", owner: "root", dest: "/lib/systemd/system/prometheus.service"}
+    - {src: "prometheus.yml.j2", group: "prometheus", owner: "prometheus", dest: "/etc/prometheus/"}
+    - {src: "prometheus.service.j2", group: "root", owner: "root", dest: "/lib/systemd/system/"}
   notify: Start prometheus
