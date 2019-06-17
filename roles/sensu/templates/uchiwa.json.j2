@@ -1,0 +1,25 @@
+{
+  "sensu": [
+    {
+      "host": "{{ uchiwa_config.sites.host }}",
+      "name": "{{ uchiwa_config.sites.name }}",
+      "port": "{{ uchiwa_config.sites.port }}",
+      "pass": "{{ uchiwa_config.sites.pass }}",
+      "user": "{{ uchiwa_config.sites.user}}"
+    }
+  ],
+  "uchiwa": {
+    "host": {{ uchiwa_config.host}},
+    "port": {{ uchiwa_config.port}},
+    "loglevel": {{ uchiwa_config.loglevel}},
+    "users": [
+      {
+        "password": {{ uchiwa_config.users.password}},
+        "role": {
+          "readonly": {{ uchiwa_config.users.role.readonly}}
+        },
+        "username": {{ uchiwa_config.users.username}}
+      }
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+---
+- name: Execute Erlang package
+  apt:
+    deb: "{{ erlang_install.url }}/{{ erlang_install.pkg }}"
+
+- name: Execute rabbitmq package
+  apt:
+    deb: "{{ rabbitmq_install.url }}/{{ rabbitmq_install.pkg }}"
+
+- name: Install prerequisites packages
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - ruby-full
+    - logrotate
+    - socat
+    - erlang-nox
+    - "{{ redis_install.pkg }}"
+    - apt-transport-https
+
+- name: Create RabbitMQ Vhost
+  rabbitmq_vhost:
+    name: "{{ rabbitmq_config.vhost }}"
+    state: present
+
+- name: Create RabbitMQ user
+  rabbitmq_user:
+    user: "{{ rabbitmq_config.user }}"
+    password: "{{ rabbitmq_config.pass }}"
+    vhost: "{{ rabbitmq_config.vhost }}"
+    configure_priv: .*
+    read_priv: .*
+    write_priv: .*
+    state: present

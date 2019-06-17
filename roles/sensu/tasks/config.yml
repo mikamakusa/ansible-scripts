@@ -1,0 +1,105 @@
+---
+
+- name: Configuration file creation for Sensu API
+  template:
+    src: "{{ item }}"
+    dest: "{{ base.config_dir }}/conf.d/{{ item | basename | regex_replace('.j2','') }}"
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_hostname == "{{ sensu_server_hostname }}"
+  with_items:
+    - api.json.j2
+
+- name: Configuration file creation for RabbitMQ
+  template:
+    src: "{{ item }}"
+    dest: "{{ base.config_dir }}/conf.d/{{ item | basename | regex_replace('.j2','') }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - rabbitmq.json.j2
+
+- name: Configuration file creation for Redis
+  template:
+    src: {{ item }}
+    dest: "{{ base.config_dir }}/conf.d/{{ item | basename | regex_replace('.j2','') }}"
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_hostname == "{{ sensu_server_hostname }}"
+  with_items:
+    - redis.json.j2
+
+- name: Configuration file creation for transport
+  template:
+    src: "{{ item }}"
+    dest: "{{ base.config_dir }}/conf.d/{{ item | basename | regex_replace('.j2','') }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - transport.json.j2
+
+- name: Configuration file creation for uchiwa
+  template:
+    src: "{{ item }}"
+    dest: "{{ base.config_dir }}/conf.d/{{ item | basename | regex_replace('.j2','') }}"
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_hostname == "{{ sensu_server_hostname }}"
+  with_items:
+    - uchiwa.json.j2
+
+- name: Sensu-server Service creation
+  template:
+    src: "services/{{ item }}"
+    dest: "{{ base.service_folder }}/{{ item | basename | regex_replace('.j2','') }}"
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_hostname == "{{ sensu_server_hostname }}"
+  notify: Start Sensu-Server daemon
+  with_items:
+    - sensu-server.service.j2
+
+- name: Sensu-API Service creation
+  template:
+    src: "services/{{ item }}"
+    dest: "{{ base.service_folder }}/{{ item | basename | regex_replace('.j2','') }}"
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_hostname == "{{ sensu_server_hostname }}"
+  notify: Start Sensu-Api daemon
+  with_items:
+    - sensu-api.service.j2
+
+- name: Sensu-client Service creation
+  template:
+    src: "services/{{ item }}"
+    dest: "{{ base.service_folder }}/{{ item | basename | regex_replace('.j2','') }}"
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_hostname == "{{ sensu_client_hostname }}"
+  notify: Start Sensu-Client Daemon
+  with_items:
+    - sensu-client.service.j2
+
+- name: Uchiwa Service creation
+  template:
+    src: "services/{{ item }}"
+    dest: "{{ base.service_folder }}/{{ item | basename | regex_replace('.j2','') }}"
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_hostname == "{{ sensu_server_hostname }}"
+  notify: Start Uchiwa Daemon
+  with_items:
+    - uchiwa.service.j2
+
+- name: Systemd Reload Configuration
+  systemd: daemon_reload=yes

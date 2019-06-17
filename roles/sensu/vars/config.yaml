@@ -1,0 +1,102 @@
+---
+
+prerequisites_installed: yes
+sensu_installed: yes
+sensu_configured: yes
+
+base:
+  source_folder: /etc/apt/sources.list.d
+  service_folder: /lib/systemd/system
+  config_dir: /etc/sensu/
+
+sensu_server_hostname: sensu-server
+sensu_client_hostname: sensu-client
+role_path: roles/sensu
+
+sensu_install:
+  url: https://sensu.global.ssl.fastly.net/apt/pool/stretch/main/s/sensu/
+  pkg: sensu_1.1.2-1_amd64.deb
+sensu_services:
+  api: sensu-api
+  server: sensu-server
+  client: sensu-client
+  uchiwa: uchiwa
+  rabbitmq: rabbitmq
+  redis: redis
+
+uchiwa_install:
+  url: http://dl.bintray.com/palourde/uchiwa
+  pkg: uchiwa_0.26.3-1_amd64.deb
+uchiwa_config:
+  host: 0.0.0.0
+  port: 3000
+  loglevel: warn
+  users:
+    username: admin
+    password: admin
+    role:
+      readonly: True
+  sites:
+    name: 'Site 1'
+    host: '0.0.0.0'
+    port: 4567
+    user: admin
+    pass: admin
+
+erlang_install:
+  pkg: erlang-solutions_1.0_all.deb
+  url: http://packages.erlang-solutions.com
+
+api_config:
+  host: localhost
+  port: 4567
+  user: admin
+  pass: admin
+
+redis_install:
+  pkg: redis-server
+redis_config:
+  path: /etc/sensu/conf.d
+  file: redis.json
+  owner: root
+  group: root
+  mode: 644
+  host: 0.0.0.0
+  port: 6379
+
+rabbitmq_install:
+  url: https://dl.bintray.com/rabbitmq/rabbitmq-server-deb
+  pkg: rabbitmq-server_3.6.14-1_all.deb
+rabbitmq_config:
+  path: /etc/sensu/conf.d
+  file: rabbitmq.json
+  owner: root
+  group: root
+  mode: 644
+  host: 0.0.0.0
+  port:
+  vhost: /sensu
+  user: sensu
+  pass: secret
+
+transport_config:
+  name: redis
+  reconnect_on_error: true
+
+nginx_install:
+  pkg: nginx
+nginx_config:
+  http_port: 80
+  https_port: 443
+  uchiwa_port: 3000
+  domain: sensu.local
+  access_log: sensu.log
+  cert_file: cert
+  cert_path: /etc/nginx
+  conf_file: sensu.conf
+  conf_path: /etc/nginx/sites-available
+  link_path: /etc/nginx/sites-enabled
+  dhparam_file: dhparams.pem
+  dhparam_path: /etc/nginx/
+ssl_install:
+  pkg: openssl

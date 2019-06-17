@@ -1,0 +1,9 @@
+---
+- name: install Sensu
+  apt:
+    deb: "{{ sensu_install.url }}/{{ sensu_install.pkg }}"
+
+- name: Install Uchiwa Package
+  apt:
+    deb: "{{ uchiwa_install.url}}/{{ uchiwa_install.pkg }}"
+  when: ansible_hostname == "{{ sensu_server_hostname }}"

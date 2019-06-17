@@ -1,0 +1,20 @@
+---
+
+- include_vars: config.yaml
+  #when: ansible_hostname == "sensu" or ansible_hostname == "sensu-server"
+
+- include_tasks: prerequisites.yml
+  tags: prerequisites
+  #when: ansible_hostname == "sensu" or ansible_hostname == "sensu-server"
+
+- include_tasks: install.yml
+  tags: install
+  #when: ansible_hostname == "sensu" or ansible_hostname == "sensu-server"
+
+- include_tasks: config.yml
+  tags: config
+ # when: ansible_hostname == "sensu" or ansible_hostname == "sensu-server"
+
+- include_tasks: securise.yml
+  tags: securise
+ # when: ansible_hostname == "sensu" or ansible_hostname == "sensu-server"

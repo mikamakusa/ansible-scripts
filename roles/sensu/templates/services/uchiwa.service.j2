@@ -1,0 +1,13 @@
+[Unit]
+Description=uchiwa
+
+[Service]
+User=root
+Group=root
+ExecStart=/opt/uchiwa/bin/uchiwa -c "{{ base.config_dir }}"/uchiwa.json -d "{{ base.config_dir }}"/conf.d/ -p /opt/uchiwa/src/public/
+KillMode=process
+Restart=on-failure
+RestartSec=1min
+
+[Install]
+WantedBy=multi-user.target

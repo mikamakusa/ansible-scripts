@@ -1,0 +1,69 @@
+---
+- name: Start Nginx
+  systemd:
+    name: nginx
+    state: started
+    daemon_reload: yes
+  when: ansible_hostname == "{{ sensu_server_hostname }}"
+
+- name: Start Sensu-Api daemon
+  systemd:
+    name: "{{ sensu_services.api }}"
+    state: started
+    daemon_reload: yes
+  when: ansible_hostname == "{{ sensu_server_hostname }}"
+
+- name: Start Sensu-Server daemon
+  systemd:
+    name: "{{ sensu_services.server }}"
+    state: started
+    daemon_reload: yes
+  when: ansible_hostname == "{{ sensu_server_hostname }}"
+
+- name: Start Uchiwa daemon
+  systemd:
+    name: "{{ sensu_services.uchiwa }}"
+    state: started
+    daemon_reload: yes
+  when: ansible_hostname == "{{ sensu_server_hostname }}"
+
+- name: Start Sensu-Client Daemon
+  systemd:
+    name: "{{ sensu_services.client }}"
+    state: started
+    daemon_reload: yes
+  when: ansible_hostname == "{{ sensu_client_hostname }}"
+
+- name: Start rabbitmq daemon
+  systemd:
+    name: "{{ sensu_services.rabbitmq }}"
+    daemon_reload: yes
+    state: started
+
+- name: Start redis Daemon
+  systemd:
+    name: "{{ sensu_services.redis }}"
+    daemon_reload: yes
+    state: started
+  when: ansible_hostname == "{{ sensu_server_hostname }}"
+
+- name: Start Uchiwa Daemon
+  systemd:
+    name: "{{ sensu_services.uchiwa }}"
+    daemon_reload: yes
+    state: started
+  when: ansible_hostname == "{{ sensu_server_hostname }}"
+
+- name: Start Nginx
+  systemd:
+    name: nginx
+    state: started
+    daemon_reload: yes
+  when: ansible_hostname == "{{ sensu_server_hostname }}"
+
+- name: Restart Nginx
+  systemd:
+    name: nginx
+    state: restarted
+    daemon_reload: yes
+  when: ansible_hostname == "{{ sensu_server_hostname }}"

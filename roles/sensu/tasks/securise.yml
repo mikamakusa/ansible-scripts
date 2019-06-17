@@ -1,0 +1,39 @@
+---
+
+- name: Install nginx & openssl
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  when: ansible_hostname == "{{ sensu_server_hostname }}"
+  with_items:
+    - "{{ nginx_install.pkg }}"
+    - "{{ ssl_install.pkg }}"
+
+- name: Create SSL key
+  command: 'openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout {{ nginx_config.cert_path }}/{{ nginx_config.cert_file }}.key -out {{ nginx_config.cert_path }}/{{ nginx_config.cert_file }}.crt -subj "/C=FR/ST=Paris/L=Paris/O=sensu/OU=sensu/CN={{ nginx_config.domain }}"'
+  when: ansible_hostname == "{{ sensu_server_hostname }}"
+
+- name: Create dh param file
+  command: "openssl dhparam -out {{ nginx_config.dhparam_path }}/{{ nginx_config.dhparam_file }} 2048"
+  when: ansible_hostname == "{{ sensu_server_hostname }}"
+
+- name: Create Sensu Config for nginx
+  template:
+    src: nginx/sensu.conf.j2
+    dest: "{{ nginx_config.conf_path }}/{{ nginx_config.conf_file }}"
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_hostname == "{{ sensu_server_hostname }}"
+
+- name: Create Symlink for Sensu Config
+  file:
+    src: "{{ nginx_config.conf_path }}/{{ nginx_config.conf_file }}"
+    dest: "{{ nginx_config.link_path }}/{{ nginx_config.conf_file }}"
+    owner: root
+    group: root
+    mode: 0644
+    state: link
+  when: ansible_hostname == "{{ sensu_server_hostname }}"
+  notify: Restart Nginx
