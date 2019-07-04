@@ -1,9 +1,0 @@
----
-
-- include_tasks: install.yml
-
-- include_tasks: alertmanager.yml
-
-- include_tasks: blackboxexporter.yml
-
-- include_tasks: node_exporter.yml
