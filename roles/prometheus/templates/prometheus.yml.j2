@@ -1,0 +1,47 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+{{ ansible_managed | comment }}
+# http://prometheus.io/docs/operating/configuration/
+
+global:
+  {{ prometheus.global | to_nice_yaml(indent=2) | indent(2, False) }}
+  external_labels:
+    {{ prometheus.external_labels | to_nice_yaml(indent=2) | indent(4, False) }}
+
+{% if prometheus.remote_write != [] %}
+remote_write:
+  {{ prometheus.remote_write | to_nice_yaml(indent=2) | indent(2, False) }}
+{% endif -%}
+
+{% if prometheus.remote_read != [] %}
+remote_read:
+  {{ prometheus.remote_read | to_nice_yaml(indent=2) | indent(2, False) }}
+{% endif -%}
+
+{% if prometheus.rules is defined and prometheus.rules != [] %}
+  rules_files:
+    {% for (key,value) in prometheus.rules.iteritems %}
+      - {{ prometheus.package | basename | regex_replace('.tar.gz','') }}/rules/{{ value.file }}
+    {% endfor %}
+{% endif -%}
+
+{% if prometheus.alertmanager_config != [] %}
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+      {% for item in prometheus.alertmanager_config %}
+      - {{ item }}
+      {% endfor %}
+{% endif -%}
+
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets:
+          - "{{ ansible_fqdn | default(ansible_host) | default('localhost') }}:9090"
+  - job_name: "node"
+    file_sd_configs:
+      - files:
+         - "/opt/{{ prometheus.package | basename | regex_replace('.tar.gz','') }}/file_sd/*.yml"
+         - "/opt/{{ prometheus.package | basename | regex_replace('.tar.gz','') }}/file_sd/*.json"
+         - "/opt/{{ prometheus.package | basename | regex_replace('.tar.gz','') }}/file_sd/*.yaml"

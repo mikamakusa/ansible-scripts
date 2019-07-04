@@ -1,0 +1,17 @@
+[Unit]
+Description=Prometheus
+After=network-online.target
+
+[Service]
+User={{ user }}
+Group={{ group }}
+ExecStart=/opt/{{ prometheus.package | basename | regex_replace('.tar.gz','') }}/prometheus \
+    --storage.tsdb.path {{ prometheus.data_dir}} \
+    --config.file /opt/{{ prometheus.package | basename | regex_replace('.tar.gz','') }}/prometheus.yml \
+    --web.console.templates /opt/{{ prometheus.package | basename | regex_replace('.tar.gz','') }}/consoles \
+    --web.console.libraries /opt/{{ prometheus.package | basename | regex_replace('.tar.gz','') }}/console_libraries \
+    --storage.tsdb.min-block-duration=2h \
+    --storage.tsdb.max-block-duration=2h
+
+[Install]
+WantedBy=multi-user.target

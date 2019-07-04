@@ -1,0 +1,77 @@
+---
+# tasks file for prometheus
+
+- name: Stop Prometheus
+  become: true
+  ignore_errors: true
+  systemd:
+    name: prometheus
+    state: stopped
+
+- name: Ensure Prometheus Group is present
+  become: true
+  group:
+    name: "{{ group }}"
+    state: present
+
+- name: Ensure Prometheus User is present
+  become: true
+  user:
+    name: "{{ user }}"
+    groups: "{{ group }}"
+    state: present
+
+- name: Unarchive prometheus
+  become: true
+  unarchive:
+    dest: "/opt/"
+    src: "{{ prometheus.url }}/v{{ prometheus_version }}/{{ prometheus.package }}"
+    remote_src: true
+
+- name: Set Permissions on Prometheus
+  become: true
+  file:
+    path: /opt/{{ prometheus.package | basename | regex_replace('.tar.gz','') }}/prometheus
+    mode: 0777
+    owner: "{{ user }}"
+    group: "{{ group }}"
+
+- name: Create service discovery files directory
+  become: true
+  file:
+    path: "/opt/{{ prometheus.package | basename | regex_replace('.tar.gz','') }}/file_sd"
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    mode: 0644
+    state: directory
+
+- name: Create Data directory for Prometheus
+  become: true
+  file:
+    path: "{{ prometheus.data_dir }}"
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    mode: 0644
+    state: directory
+
+- name: Add Prometheus Configuration file
+  become: true
+  template:
+    src: "{{ item }}"
+    dest: "/opt/{{ prometheus.package | basename | regex_replace('.tar.gz','') }}/{{ item | basename | regex_replace('.j2','') }}"
+  with_items:
+    - "{{ prometheus_config_file }}"
+
+- name: Add Prometheus Service file
+  become: true
+  template:
+    src: "prometheus.service.j2"
+    dest: "/lib/systemd/system/prometheus.service"
+
+- name: Start Prometheus
+  become: true
+  systemd:
+    name: prometheus
+    state: started
+    daemon_reload: true
+    enabled: true
