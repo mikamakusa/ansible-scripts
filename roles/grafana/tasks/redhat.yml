@@ -1,0 +1,17 @@
+---
+
+- name: Download Grafana Package
+  become: true
+  get_url:
+    url: "https://dl.grafana.com/oss/release/{{ item }}"
+    dest: "/tpm/{{ item }}"
+  with_items:
+    - "grafana-6.2.5-1.x86_64.rpm"
+
+- name: Install Grafana
+  become: true
+  yum:
+    name: "/tmp/{{ item }}"
+    state: installed
+  with_items:
+    - "grafana-6.2.5-1.x86_64.rpm"

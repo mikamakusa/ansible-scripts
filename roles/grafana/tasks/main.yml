@@ -1,16 +1,90 @@
 ---
+# tasks file for grafana
 
-- include_vars: config.yaml
-  when: ansible_hostname == "influxdb" or ansible_hostname == "grafana" or ansible_hostname == "collectd"
+- name: Stop Grafana
+  become: true
+  systemd:
+    name: grafana-server
+    state: stopped
 
-- include_tasks: prerequisites.yml
-  tags: prerequisites_installed
-  when: ansible_hostname == "influxdb" or ansible_hostname == "grafana" or ansible_hostname == "collectd"
+- name: Install Grafana | Debian
+  include: debian.yml
+  when: ansible_os_family == "Debian"
 
-- include_tasks: install.yml
-  tags: grafana_installed
-  when: ansible_hostname == "influxdb" or ansible_hostname == "grafana" or ansible_hostname == "collectd"
+- name: Install Grafana | RedHat
+  include: redhat.yml
+  when: ansible_os_family == "RedHat"
 
-- include_tasks: securise.yml
-  tags: grafana_secured
-  when: ansible_hostname == "influxdb" or ansible_hostname == "grafana" or ansible_hostname == "collectd"
+- name: Update Grafana Config file
+  become: true
+  lineinfile:
+    path: /etc/grafana/grafana.ini
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - "{{ grafana.config.file }}"
+
+- name: start Grafana
+  become: true
+  systemd:
+    name: grafana-server
+    state: started
+    enabled: true
+    daemon_reload: true
+
+- name: Check if Grafana is Up & Running
+  become: true
+  wait_for:
+    host: 0.0.0.0
+    port: 3000
+    state: started
+  ignore_errors: true
+
+- name: Update Grafana Default Admin password
+  become: true
+  shell: |
+    curl -X PUT -u admin:{{ grafana.config.password }} -H "Content-Type: application/json" http://{{ grafana.url }}:3000/api/user/password -d '{"oldPassword": "{{ grafana.config.password }}",  "newPassword": "{{ grafana.config.password }}+",  "confirmNew": "{{ grafana.config.password }}+"}'
+  ignore_errors: true
+
+- name: Create Prometheus Datasource for Grafana
+  become: true
+  grafana_datasource:
+    name: "{{ item.name }}"
+    grafana_url: "http://{{ grafana.url }}:3000"
+    grafana_user: "admin"
+    grafana_password: "{{ grafana.config.password }}"
+    org_id: "{{ item.id }}"
+    name: "{{ item.name }}"
+    url: "{{ item.url }}"
+    ds_type: "{{ item.type }}"
+    access: "{{ item.access | default(omit) }}"
+    is_default: "{{ item.isDefault | default(omit) }}"
+    basic_auth_user: "{{ item.basicAuthUser | default(omit) }}"
+    basic_auth_password: "{{ item.basicAuthPassword | default(omit) }}"
+    database: "{{ item.database | default(omit) }}"
+    password: "{{ item.password | default(omit) }}"
+    is_default: "{{ item.default | default(omit) }}"
+    time_interval: "{{ item.time_interval | default(omit) }}"
+  with_items: "{{ grafana.config.datasources }}"
+  ignore_errors: true
+
+- name: Get Dashboard json file
+  become: true
+  copy:
+    src: "{{ role_path }}/files/{{ item.path }}"
+    dest: "/opt/{{ item.path }}"
+  with_items: "{{ grafana.config.dashboard }}"
+
+- name: Create Grafana Dashboard
+  become: true
+  grafana_dashboard:
+    grafana_url: "http://{{ grafana.url }}:3000"
+    grafana_user: "admin"
+    grafana_password: "{{ grafana.config.password }}"
+    message: "Grafana Dashbord for {{ item.name }}"
+    overwrite: true
+    org_id: "{{ item.id }}"
+    path: "/opt/{{ item.path }}"
+    state: present
+  with_items: "{{ grafana.config.dashboard }}"
+  ignore_errors: true

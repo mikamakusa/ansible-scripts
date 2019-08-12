@@ -1,0 +1,47 @@
+---
+# defaults file for grafana
+
+domain: ""
+
+grafana:
+  url: "localhost"
+  config:
+    password: "admin"
+    file:
+      - regexp: ";domain = localhost"
+        line: "domain = {{ domain }}"
+      - regexp: ";root_url = http://localhost:3000"
+        line: "root_url = %(protocol)s://%(domain)s:%(http_port)s/grafana/"
+    datasources: []
+      # - name: "Prometheus"
+      #   type: "prometheus"
+      #   access: "proxy"
+      #   url: "http://localhost:9090"
+      #   basicAuth: true
+      #   basicAuthUser: ""
+      #   basicAuthPassword: ""
+      #   isDefault: true
+      #   id: "1"
+      #   jsonData:
+      #     tlsAuth: false
+      #     tlsAuthWithCACert: false
+      #     tlsSkipVerify: false
+      # - name: InfluxDB_telegraf_db
+      #   type: "influxdb"
+      #   id: "2"
+      #   access: "proxy"
+      #   url: "http://localhost:8086"
+      #   basicAuth: true
+      #   isDefault: true
+      #   id: "2"
+      #   database: ""
+      #   password: ""
+      #   default: ""
+      #   time_interval: ""
+    dashboard: []
+      # - name: "prometheus"
+      #   id: "1"
+      #   path: "host-overview_rev2.json"
+      # - name: "influxdb"
+      #   id: "1"
+      #   path: "system-metrics-single_rev1.json"

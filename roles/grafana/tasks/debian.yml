@@ -1,0 +1,24 @@
+---
+
+- name: Check if package is installed
+  become: true
+  shell: dpkg --get-selection | grep grafana
+  register: grafana
+
+- name: Get Grafana Package
+  become: true
+  get_url:
+    url: "https://dl.grafana.com/oss/release/{{ item }}"
+    dest: "/tmp/{{ item }}"
+  with_items:
+    - "grafana_6.2.5_amd64.deb"
+  when: not grafana.is_installed
+
+- name: Install Grafana
+  become: true
+  apt_rpm:
+    pkg: "/tmp/{{ item }}"
+    state: present
+  with_items:
+    - "grafana_6.2.5_amd64.deb"
+  when: not grafana.is_installed
